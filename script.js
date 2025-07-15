@@ -57,6 +57,7 @@ async function populateTokens() {
     opt.innerText = t.symbol;
     inSel.appendChild(opt.cloneNode(true));
     outSel.appendChild(opt.cloneNode(true));
+
     if (t.address !== "AVAX") {
       const c = new ethers.Contract(t.address, ERC20_ABI, provider);
       tokenDecimals[t.address] = await c.decimals();
@@ -302,6 +303,8 @@ function copyToClipboard(txt) {
 // === PROFILE DROPDOWN ===
 function toggleProfileMenu() {
   const menu = document.getElementById("profileMenu");
+  // hide tx menu if open
+  document.getElementById("txMenu").style.display = "none";
   menu.style.display = menu.style.display === "flex" ? "none" : "flex";
 }
 function copyWallet() {
@@ -318,17 +321,21 @@ function disconnect() {
   showToast("Wallet disconnected", "info");
 }
 
-// === RECENT TRANSACTIONS PANEL & LOGIC ===
+// === TRANSACTIONS DROPDOWN ===
 async function viewTransactions() {
-  // close profile menu
+  // hide profile menu
   document.getElementById("profileMenu").style.display = "none";
-  // open tx panel + overlay
-  document.getElementById("txOverlay").style.display = "block";
-  document.getElementById("txBar").classList.add("open");
 
-  document.getElementById('txLoader').style.display = 'block';
-  document.getElementById('txList').style.display   = 'none';
-  document.getElementById('txEmpty').style.display  = 'none';
+  const txMenu  = document.getElementById("txMenu");
+  const loader  = document.getElementById("txLoader");
+  const list    = document.getElementById("txList");
+  const emptyEl = document.getElementById("txEmpty");
+
+  // show tx menu
+  txMenu.style.display  = "flex";
+  loader.style.display  = "block";
+  list.style.display    = "none";
+  emptyEl.style.display = "none";
 
   try {
     const resp = await fetch(
@@ -338,7 +345,7 @@ async function viewTransactions() {
       `&startblock=0&endblock=99999999&sort=desc`
     );
     const json = await resp.json();
-    if (json.status !== '1') throw new Error(json.message);
+    if (json.status !== "1") throw new Error(json.message);
 
     const routerTxs = json.result
       .filter(tx => tx.to.toLowerCase() === routerAddress.toLowerCase())
@@ -349,46 +356,46 @@ async function viewTransactions() {
         hash:      tx.hash,
         timeStamp: Number(tx.timeStamp)
       })));
-      document.getElementById('txList').style.display = 'block';
+      list.style.display = "block";
     } else {
-      document.getElementById('txEmpty').style.display = 'block';
+      emptyEl.style.display = "block";
     }
   } catch (err) {
     console.error(err);
-    document.getElementById('txEmpty').innerText = 'Failed to load transactions.';
-    document.getElementById('txEmpty').style.display = 'block';
+    emptyEl.innerText = "Failed to load transactions.";
+    emptyEl.style.display = "block";
   } finally {
-    document.getElementById('txLoader').style.display = 'none';
+    loader.style.display = "none";
   }
 }
 
 function renderTxList(txs) {
-  const ul = document.getElementById('txList');
-  ul.innerHTML = '';
+  const ul = document.getElementById("txList");
+  ul.innerHTML = "";
   txs.forEach(tx => {
-    const li = document.createElement('li');
-    const a  = document.createElement('a');
+    const li = document.createElement("li");
+    const a  = document.createElement("a");
     a.href      = `https://snowtrace.io/tx/${tx.hash}`;
-    a.target    = '_blank';
+    a.target    = "_blank";
     a.innerText = tx.hash;
-    const tm = document.createElement('time');
+    const tm = document.createElement("time");
     tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
     li.append(a, tm);
     ul.appendChild(li);
   });
 }
 
+// === CLOSE TX DROPDOWN ===
 function closeTxBar() {
-  document.getElementById('txBar').classList.remove('open');
-  document.getElementById('txOverlay').style.display = 'none';
+  document.getElementById("txMenu").style.display = "none";
 }
 
 // === TOAST ===
-function showToast(msg, type = 'info') {
-  const t = document.createElement('div');
+function showToast(msg, type = "info") {
+  const t = document.createElement("div");
   t.className = `toast ${type}`;
   t.innerText = msg;
-  document.getElementById('toastContainer').appendChild(t);
+  document.getElementById("toastContainer").appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }
 
@@ -398,9 +405,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (localStorage.getItem("connected")) await connect();
 });
 window.addEventListener("click", (e) => {
-  const menu = document.getElementById("profileMenu");
-  if (!document.getElementById("profileWrapper").contains(e.target)) {
-    menu.style.display = "none";
+  // close profile or tx dropdown if clicking outside
+  const pw = document.getElementById("profileWrapper");
+  if (!pw.contains(e.target)) {
+    document.getElementById("profileMenu").style.display = "none";
+    document.getElementById("txMenu").style.display      = "none";
   }
 });
 
