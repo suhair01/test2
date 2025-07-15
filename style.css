@@ -1,3 +1,4 @@
+
 :root {
   --ruby: #ff0000;
   --ruby-light: rgba(255, 0, 0, 0.1);
@@ -433,3 +434,66 @@ body {
 @keyframes fadeOut {
   to { opacity: 0; transform: translateY(20px); }
 }
+
+/* Transactions dropdown component */
+#txMenu {
+  /* inherits styles above */
+}
+#txMenu.open {
+  display: flex !important;
+}
+#txMenu .tx-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+#txMenu .tx-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+#txMenu .tx-loader {
+  margin: 12px auto;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border);
+  border-top-color: var(--ruby);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#txMenu .tx-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#txMenu .tx-list li {
+  background: var(--ruby-light);
+  padding: 6px 8px;
+  border-radius: 6px;
+  word-break: break-all;
+}
+#txMenu .tx-list a {
+  color: var(--ruby);
+  text-decoration: none;
+  font-weight: 500;
+}
+#txMenu .tx-list time {
+  display: block;
+  font-size: 12px;
+  color: var(--subtle);
+  margin-top: 4px;
+}
+#txMenu .tx-empty {
+  padding: 12px 0;
+  text-align: center;
+  color: var(--subtle);
+}
+
