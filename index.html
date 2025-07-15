@@ -20,24 +20,28 @@
     <div class="profile-wrapper" id="profileWrapper" style="display:none;">
       <button class="profile-btn" onclick="toggleProfileMenu()">👤</button>
       <div class="profile-menu" id="profileMenu">
-        <div class="wallet-info">
-          <span id="walletAddress">0x123...abc</span>
-          <button class="copy-btn" onclick="copyWallet()">📋</button>
+        
+        <!-- Profile Content -->
+        <div id="profileContent" style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="wallet-info">
+            <span id="walletAddress">0x123...abc</span>
+            <button class="copy-btn" onclick="copyWallet()">📋</button>
+          </div>
+          <button onclick="viewTransactions()">📑 Transactions</button>
+          <button onclick="switchToAvalanche()">🔁 Switch to Avalanche</button>
+          <button onclick="disconnect()">❌ Disconnect</button>
         </div>
-        <button onclick="viewTransactions()">📑 Transactions</button>
-        <button onclick="switchToAvalanche()">🔁 Switch to Avalanche</button>
-        <button onclick="disconnect()">❌ Disconnect</button>
-      </div>
 
-      <!-- NEW TRANSACTIONS DROPDOWN -->
-      <div id="txDropdown" class="tx-dropdown" style="display: none;">
-        <div class="tx-header">
-          <span>Recent Transactions</span>
-          <button class="tx-close" onclick="closeTxBar()">×</button>
+        <!-- Transactions View (initially hidden) -->
+        <div id="txDropdown" style="display: none; flex-direction: column; gap: 8px;">
+          <div class="tx-header">
+            <span>Recent Transactions</span>
+            <button class="tx-close" onclick="closeTxBar()">×</button>
+          </div>
+          <div id="txLoader" class="tx-loader"></div>
+          <ul id="txList" class="tx-list"></ul>
+          <div id="txEmpty" class="tx-empty">No transactions found.</div>
         </div>
-        <div id="txLoader" class="tx-loader"></div>
-        <ul id="txList" class="tx-list"></ul>
-        <div id="txEmpty" class="tx-empty">No transactions found.</div>
       </div>
     </div>
 
