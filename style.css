@@ -1,4 +1,3 @@
-
 :root {
   --ruby: #ff0000;
   --ruby-light: rgba(255, 0, 0, 0.1);
@@ -13,6 +12,7 @@
 * {
   box-sizing: border-box;
 }
+
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
@@ -35,30 +35,36 @@ body {
   margin: 24px auto 20px auto;
   padding: 12px 24px;
 }
+
 .header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .header-left {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .logo,
 .footer-logo {
   height: 32px;
   border-radius: 6px;
 }
+
 .footer-logo {
   width: 40px;
 }
+
 .brand-name {
   font-size: 18px;
   font-weight: 600;
   color: var(--ruby);
   letter-spacing: 0.5px;
 }
+
 .connect-btn {
   padding: 6px 14px;
   background: var(--ruby);
@@ -69,6 +75,7 @@ body {
   font-weight: 500;
   cursor: pointer;
 }
+
 .connect-btn:hover {
   background: #801722;
 }
@@ -77,6 +84,7 @@ body {
 .profile-wrapper {
   position: relative;
 }
+
 .profile-btn {
   background: var(--card);
   border: 1px solid var(--border);
@@ -85,6 +93,7 @@ body {
   font-size: 18px;
   cursor: pointer;
 }
+
 .profile-menu,
 #txMenu {
   position: absolute;
@@ -101,6 +110,7 @@ body {
   flex-direction: column;
   gap: 8px;
 }
+
 .profile-menu button,
 #txMenu .tx-item {
   background: none;
@@ -111,10 +121,12 @@ body {
   cursor: pointer;
   font-size: 14px;
 }
+
 .profile-menu button:hover,
 #txMenu .tx-item:hover {
   background: var(--ruby-light);
 }
+
 .wallet-info {
   display: flex;
   justify-content: space-between;
@@ -136,12 +148,14 @@ body {
   margin-top: 60px;
   margin-bottom: 60px;
 }
+
 .top-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-bottom: 6px;
 }
+
 .icon-btn {
   background: transparent;
   border: none;
@@ -153,9 +167,11 @@ body {
   border-radius: 8px;
   transition: background 0.2s;
 }
+
 .icon-btn:hover {
   background: rgba(75, 66, 67, 0.1);
 }
+
 .reload-btn {
   background: none;
   border: none;
@@ -164,13 +180,17 @@ body {
   color: #555;
   transition: transform 0.2s ease, color 0.2s ease;
 }
+
 .reload-btn:hover {
   transform: rotate(90deg);
   color: #000;
 }
 
 /* Slippage Popup */
-.settings-wrapper { position: relative; }
+.settings-wrapper {
+  position: relative;
+}
+
 .slippage-popup {
   position: absolute;
   top: 40px;
@@ -183,12 +203,18 @@ body {
   display: none;
   z-index: 100;
 }
-.slippage-popup label { font-size: 14px; font-weight: bold; }
+
+.slippage-popup label {
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .slippage-input-wrapper {
   display: flex;
   align-items: center;
   margin-top: 4px;
 }
+
 .slippage-input-wrapper input {
   width: 40px;
   padding: 4px;
@@ -197,7 +223,10 @@ body {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
-.slippage-input-wrapper .percent-label { margin-left: 4px; }
+
+.slippage-input-wrapper .percent-label {
+  margin-left: 4px;
+}
 
 /* Token Selector */
 .token-select {
@@ -205,6 +234,7 @@ body {
   align-items: center;
   gap: 8px;
 }
+
 .token-display {
   display: flex;
   align-items: center;
@@ -216,7 +246,11 @@ body {
   cursor: pointer;
   font-weight: 500;
 }
-.token-display:hover { border-color: var(--ruby); }
+
+.token-display:hover {
+  border-color: var(--ruby);
+}
+
 .token-logo {
   width: 28px;
   height: 28px;
@@ -225,7 +259,11 @@ body {
   border: 1px solid #ccc;
   background: var(--white);
 }
-.dropdown-arrow { font-size: 12px; opacity: 0.6; }
+
+.dropdown-arrow {
+  font-size: 12px;
+  opacity: 0.6;
+}
 
 /* Token Boxes */
 .token-box {
@@ -235,13 +273,19 @@ body {
   margin-bottom: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
 }
+
 .token-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
 }
-.balance { font-size: 13px; color: var(--subtle); }
+
+.balance {
+  font-size: 13px;
+  color: var(--subtle);
+}
+
 .amount-input {
   width: 100%;
   padding: 10px;
@@ -250,10 +294,12 @@ body {
   text-align: right;
   margin-bottom: 6px;
 }
+
 .percentage-buttons {
   display: flex;
   gap: 4px;
 }
+
 .percentage-buttons button {
   flex: 1;
   padding: 6px;
@@ -263,10 +309,12 @@ body {
   border-radius: 8px;
   cursor: pointer;
 }
+
 .percentage-buttons button:hover {
   background: var(--ruby);
   color: #fff;
 }
+
 .reverse-btn {
   width: 32px;
   height: 32px;
@@ -294,19 +342,25 @@ body {
   cursor: pointer;
   margin-top: 10px;
 }
-.btn:hover { background: #801722; }
+
+.btn:hover {
+  background: #801722;
+}
 
 /* Modal */
 .modal {
   display: none;
   position: fixed;
   z-index: 999;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   background-color: rgba(0,0,0,0.5);
   justify-content: center;
   align-items: center;
 }
+
 .modal-content {
   background: var(--white);
   color: var(--text);
@@ -316,13 +370,19 @@ body {
   padding: 20px;
   box-shadow: 0 12px 40px rgba(0,0,0,0.2);
 }
+
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 14px;
 }
-.modal-title { font-size: 18px; font-weight: bold; }
+
+.modal-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
 .close-modal {
   background: transparent;
   border: none;
@@ -330,6 +390,7 @@ body {
   color: var(--subtle);
   cursor: pointer;
 }
+
 #tokenSearch {
   width: 100%;
   padding: 10px 12px;
@@ -351,69 +412,44 @@ body {
   cursor: pointer;
   transition: background 0.2s ease;
 }
-.token-item:hover { background: #eee; }
+
+.token-item:hover {
+  background: #eee;
+}
+
 .token-left {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-.token-symbol { font-weight: bold; font-size: 15px; }
-.token-address { font-size: 12px; color: #888; }
-.copy-btn { font-size: 14px; color: var(--ruby); cursor: pointer; }
 
-/* Footer */
-.footer-content {
-  padding: 30px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.token-symbol {
+  font-weight: bold;
+  font-size: 15px;
 }
-.footer-top {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  align-items: center;
+
+.token-address {
+  font-size: 12px;
+  color: #888;
 }
-.socials img {
-  height: 24px;
-  margin-right: 12px;
-}
-.footer-links {
-  display: flex;
-  gap: 20px;
-}
-.footer-links a {
-  color: var(--ruby);
-  font-weight: 500;
-  text-decoration: none;
+
+.copy-btn {
   font-size: 14px;
+  color: var(--ruby);
+  cursor: pointer;
 }
-.footer-links a:hover {
-  text-decoration: underline;
-}
-.footer-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-.footer-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.legal { font-size: 12px; color: #999; }
 
 /* Toasts */
 #toastContainer {
   position: fixed;
-  bottom: 30px; right: 30px;
+  bottom: 30px;
+  right: 30px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 .toast {
   padding: 12px 16px;
   background: #333;
@@ -425,29 +461,51 @@ body {
   animation: fadeInUp 0.3s forwards, fadeOut 0.3s 3s forwards;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
-.toast.success { background: #28a745; }
-.toast.error   { background: #dc3545; }
-.toast.info    { background: #444; }
-@keyframes fadeInUp {
-  to { opacity: 1; transform: translateY(0); }
+
+.toast.success {
+  background: #28a745;
 }
+
+.toast.error {
+  background: #dc3545;
+}
+
+.toast.info {
+  background: #444;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes fadeOut {
-  to { opacity: 0; transform: translateY(20px); }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
 }
 
 /* Transactions overlay + slide-in panel */
 #txOverlay {
   display: none;
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0,0,0,0.5);
   z-index: 998;
 }
+
 #txBar {
   position: fixed;
-  top: 0; right: -360px;
-  width: 340px; height: 100%;
+  top: 0;
+  right: -360px;
+  width: 340px;
+  height: 100%;
   background: var(--card);
   box-shadow: -4px 0 12px rgba(0,0,0,0.2);
   border-radius: 16px 0 0 16px;
@@ -457,59 +515,74 @@ body {
   flex-direction: column;
   padding: 16px;
 }
+
 #txBar.open {
   right: 0;
 }
+
 #txBar .tx-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 }
+
 #txBar .tx-close {
   background: none;
   border: none;
   font-size: 18px;
   cursor: pointer;
 }
+
 #txBar .tx-loader {
   margin: 12px auto;
-  width: 24px; height: 24px;
+  width: 24px;
+  height: 24px;
   border: 3px solid var(--border);
   border-top-color: var(--ruby);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 #txBar .tx-list {
   list-style: none;
-  margin: 0; padding: 0;
+  margin: 0;
+  padding: 0;
   max-height: 200px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
+
 #txBar .tx-list li {
   background: var(--ruby-light);
   padding: 6px 8px;
   border-radius: 6px;
   word-break: break-all;
 }
+
 #txBar .tx-list a {
   color: var(--ruby);
   text-decoration: none;
   font-weight: 500;
 }
+
 #txBar .tx-list time {
   display: block;
   font-size: 12px;
   color: var(--subtle);
   margin-top: 4px;
 }
+
 #txBar .tx-empty {
   padding: 12px 0;
   text-align: center;
   color: var(--subtle);
 }
-  
