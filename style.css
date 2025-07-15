@@ -1,9 +1,11 @@
 :root {
   --ruby: #ff0000;
+  --ruby-light: #ffe5e5;
   --bg: #ffdada;
   --card: #ffffff;
   --text: #000000;
   --subtle: #555555;
+  --border: #ccc;
 }
 
 * { box-sizing: border-box; }
@@ -111,12 +113,10 @@ body {
   line-height: 1;
   transition: transform 0.2s ease, color 0.2s ease;
 }
-
 .reload-btn:hover {
   transform: rotate(90deg);
   color: #000;
 }
-
 
 /* Slippage Popup */
 .settings-wrapper {
@@ -242,6 +242,10 @@ body {
   justify-content: center;
   cursor: pointer;
 }
+.reverse-btn:active {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
 
 /* Main Swap Button */
 .btn {
@@ -269,11 +273,10 @@ body {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* soft dark overlay */
+  background-color: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
 }
-
 .modal-content {
   background: #ffffff;
   color: #000;
@@ -283,20 +286,17 @@ body {
   padding: 20px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
-
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 14px;
 }
-
 .modal-title {
   font-size: 18px;
   font-weight: bold;
   color: var(--text);
 }
-
 .close-modal {
   background: transparent;
   border: none;
@@ -304,7 +304,6 @@ body {
   color: var(--subtle);
   cursor: pointer;
 }
-
 #tokenSearch {
   width: 100%;
   padding: 10px 12px;
@@ -313,7 +312,6 @@ body {
   border: 1px solid #ccc;
   font-size: 14px;
 }
-
 .token-item {
   display: flex;
   align-items: center;
@@ -325,17 +323,14 @@ body {
   cursor: pointer;
   transition: background 0.2s ease;
 }
-
 .token-item:hover {
   background: #eee;
 }
-
 .token-left {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .token-logo {
   width: 32px;
   height: 32px;
@@ -344,24 +339,22 @@ body {
   border: 1px solid #ddd;
   background: white;
 }
-
 .token-symbol {
   font-weight: bold;
   font-size: 15px;
 }
-
 .token-address {
   font-size: 12px;
   color: #888;
 }
-
 .copy-btn {
   font-size: 14px;
   color: var(--ruby);
   cursor: pointer;
   padding: 4px;
+  background: none;
+  border: none;
 }
-
 
 /* Footer */
 .footer-content {
@@ -436,10 +429,11 @@ body {
 @keyframes fadeOut {
   to { opacity: 0; transform: translateY(20px); }
 }
+
+/* Profile Menu */
 .profile-wrapper {
   position: relative;
 }
-
 .profile-btn {
   background: var(--card);
   border: 1px solid var(--border);
@@ -448,7 +442,6 @@ body {
   font-size: 18px;
   cursor: pointer;
 }
-
 .profile-menu {
   position: absolute;
   top: 45px;
@@ -464,7 +457,6 @@ body {
   flex-direction: column;
   gap: 8px;
 }
-
 .profile-menu button {
   background: none;
   border: none;
@@ -474,12 +466,10 @@ body {
   cursor: pointer;
   font-size: 14px;
 }
-
 .profile-menu button:hover {
   background: var(--ruby-light);
   color: var(--text);
 }
-
 .wallet-info {
   display: flex;
   justify-content: space-between;
@@ -490,92 +480,79 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-.copy-btn {
+/* Transactions Dropdown (NEW STYLE) */
+.tx-dropdown {
+  position: absolute;
+  top: 45px;
+  right: 60px;
+  width: 260px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  padding: 12px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tx-dropdown .tx-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+.tx-dropdown .tx-close {
   background: none;
   border: none;
+  font-size: 16px;
   cursor: pointer;
+  color: #666;
 }
-
-/* overlay behind tx panel */
-.tx-overlay {
-  display: none;
-  position: fixed; top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.3);
-  z-index: 99;
-}
-
-/* slide-out panel */
-.tx-bar {
-  position: fixed;
-  top: 0; right: -360px;
-  width: 360px; height: 100%;
-  background: var(--white);
-  box-shadow: -4px 0 12px rgba(0,0,0,0.1);
-  transition: right 0.3s ease;
-  display: flex; flex-direction: column;
-  z-index: 100;
-  font-size: 14px;
-}
-.tx-bar.open {
-  right: 0;
-}
-
-/* header */
-.tx-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px; border-bottom: 1px solid var(--border);
-  font-weight: bold; font-size: 16px;
-}
-.tx-close {
-  background: none; border: none; font-size: 22px; cursor: pointer;
-}
-
-/* loader */
-.tx-loader {
-  display: none;
-  margin: 24px auto;
-  width: 40px; height: 40px;
-  border: 4px solid var(--border);
+.tx-dropdown .tx-loader {
+  margin: 20px auto;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border);
   border-top-color: var(--ruby);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* tx list */
-.tx-list {
-  flex: 1;
+.tx-dropdown .tx-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
   overflow-y: auto;
-  list-style: none; margin: 0; padding: 8px 16px;
 }
-.tx-list li {
-  background: var(--ruby-light);
-  margin-bottom: 8px;
-  padding: 8px 12px;
+.tx-dropdown .tx-list li {
+  font-size: 13px;
+  background: #f5f5f5;
+  padding: 6px 8px;
   border-radius: 8px;
+  margin-bottom: 6px;
+  word-break: break-word;
 }
-.tx-list li:last-child { margin-bottom: 0; }
-.tx-list a {
+.tx-dropdown .tx-list a {
   color: var(--ruby);
   text-decoration: none;
-  word-break: break-all;
   font-weight: 500;
 }
-.tx-list time {
-  display: block;
-  font-size: 12px;
-  color: #555;
-  margin-top: 4px;
-}
-
-/* empty state */
-.tx-empty {
-  display: none;
-  text-align: center;
-  padding: 24px 16px;
+.tx-dropdown .tx-list time {
+  font-size: 11px;
   color: #777;
-  flex: none;
+  display: block;
+  margin-top: 2px;
+}
+.tx-dropdown .tx-empty {
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+  padding: 10px;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
