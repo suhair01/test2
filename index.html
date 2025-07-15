@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +14,9 @@
       <img src="logo.jpg" alt="Avaly Logo" class="logo" />
       <span class="brand-name">Avaly</span>
     </div>
+
     <button class="connect-btn" onclick="connect()">Connect Wallet</button>
+
     <div class="profile-wrapper" id="profileWrapper" style="display:none;">
       <button class="profile-btn" onclick="toggleProfileMenu()">👤</button>
       <div class="profile-menu" id="profileMenu">
@@ -27,7 +28,19 @@
         <button onclick="switchToAvalanche()">🔁 Switch to Avalanche</button>
         <button onclick="disconnect()">❌ Disconnect</button>
       </div>
+
+      <!-- NEW TRANSACTIONS DROPDOWN -->
+      <div id="txDropdown" class="tx-dropdown" style="display: none;">
+        <div class="tx-header">
+          <span>Recent Transactions</span>
+          <button class="tx-close" onclick="closeTxBar()">×</button>
+        </div>
+        <div id="txLoader" class="tx-loader"></div>
+        <ul id="txList" class="tx-list"></ul>
+        <div id="txEmpty" class="tx-empty">No transactions found.</div>
+      </div>
     </div>
+
     <button id="switchNetworkBtn" style="display:none;" onclick="switchToAvalanche()">Switch to Avalanche</button>
   </div>
 
@@ -109,16 +122,6 @@
     </div>
   </div>
 
-
-<div id="txBar" class="tx-bar">
-  <div class="tx-header">
-    <span>Recent Transactions</span>
-    <button onclick="closeTxBar()">×</button>
-  </div>
-  <ul id="txList" class="tx-list"></ul>
-</div>
-
-  
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-content">
@@ -147,18 +150,6 @@
   </footer>
 
   <div id="toastContainer"></div>
-
-  <!-- Recent Transactions Overlay + Panel -->
-<div id="txOverlay" class="tx-overlay" onclick="closeTxBar()"></div>
-<div id="txBar" class="tx-bar">
-  <div class="tx-header">
-    <span>Recent Transactions</span>
-    <button class="tx-close" onclick="closeTxBar()">×</button>
-  </div>
-  <div id="txLoader" class="tx-loader"></div>
-  <ul id="txList" class="tx-list"></ul>
-  <div id="txEmpty" class="tx-empty">No transactions found.</div>
-</div>
 
   <script src="script.js"></script>
 </body>
