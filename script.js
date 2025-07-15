@@ -407,3 +407,61 @@ function copyToClipboard(text) {
   navigator.clipboard.writeText(text);
   showToast("Copied to clipboard", "info");
 }
+
+let currentAccount = null;
+
+function toggleProfileMenu() {
+  const menu = document.getElementById("profileMenu");
+  menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+}
+
+function copyWallet() {
+  if (currentAccount) {
+    navigator.clipboard.writeText(currentAccount);
+    showToast("Copied wallet address!", "success");
+  }
+}
+
+function disconnect() {
+  localStorage.removeItem("connected");
+  currentAccount = null;
+  document.getElementById("profileWrapper").style.display = "none";
+  document.querySelector(".connect-btn").style.display = "inline-block";
+  showToast("Wallet disconnected", "info");
+}
+
+function viewTransactions() {
+  if (!currentAccount) return;
+  window.open(`https://snowtrace.io/address/${currentAccount}`, "_blank");
+}
+
+async function connect() {
+  if (typeof window.ethereum !== "undefined") {
+    try {
+      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+      currentAccount = ethers.getAddress(accounts[0]);
+      document.getElementById("walletAddress").innerText =
+        currentAccount.slice(0, 6) + "..." + currentAccount.slice(-4);
+
+      document.querySelector(".connect-btn").style.display = "none";
+      document.getElementById("profileWrapper").style.display = "flex";
+      localStorage.setItem("connected", "1");
+    } catch (err) {
+      showToast("Connection failed", "error");
+    }
+  } else {
+    showToast("MetaMask not detected", "error");
+  }
+}
+
+window.addEventListener("click", function (e) {
+  const menu = document.getElementById("profileMenu");
+  if (!document.getElementById("profileWrapper").contains(e.target)) {
+    menu.style.display = "none";
+  }
+});
+window.addEventListener("DOMContentLoaded", async () => {
+  if (localStorage.getItem("connected")) {
+    await connect();
+  }
+});
