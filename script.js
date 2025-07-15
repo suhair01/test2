@@ -454,11 +454,11 @@ function renderTxList(txs) {
     ul.appendChild(li);
   });
 }
-
 function closeTxBar() {
   document.getElementById("txBar").classList.remove("open");
   document.getElementById("txOverlay").style.display = "none";
 }
+
 
 // === TOAST ===
 function showToast(msg, type = 'info') {
