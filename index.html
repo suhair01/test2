@@ -147,6 +147,19 @@
   </footer>
 
   <div id="toastContainer"></div>
+
+  <!-- Recent Transactions Overlay + Panel -->
+<div id="txOverlay" class="tx-overlay" onclick="closeTxBar()"></div>
+<div id="txBar" class="tx-bar">
+  <div class="tx-header">
+    <span>Recent Transactions</span>
+    <button class="tx-close" onclick="closeTxBar()">×</button>
+  </div>
+  <div id="txLoader" class="tx-loader"></div>
+  <ul id="txList" class="tx-list"></ul>
+  <div id="txEmpty" class="tx-empty">No transactions found.</div>
+</div>
+
   <script src="script.js"></script>
 </body>
 </html>
