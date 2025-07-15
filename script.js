@@ -57,7 +57,6 @@ async function populateTokens() {
     opt.innerText = t.symbol;
     inSel.appendChild(opt.cloneNode(true));
     outSel.appendChild(opt.cloneNode(true));
-
     if (t.address !== "AVAX") {
       const c = new ethers.Contract(t.address, ERC20_ABI, provider);
       tokenDecimals[t.address] = await c.decimals();
@@ -75,9 +74,9 @@ async function populateTokens() {
 function updateLogos() {
   const inObj  = JSON.parse(document.getElementById("tokenInSelect").value);
   const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
-  document.getElementById("inLogo").src        = inObj.logo;
+  document.getElementById("inLogo").src         = inObj.logo;
   document.getElementById("inSymbol").innerText  = inObj.symbol;
-  document.getElementById("outLogo").src       = outObj.logo;
+  document.getElementById("outLogo").src        = outObj.logo;
   document.getElementById("outSymbol").innerText = outObj.symbol;
 }
 
@@ -112,20 +111,17 @@ async function connect() {
         }
       }
     }
-
-    provider    = new ethers.BrowserProvider(window.ethereum);
-    signer      = await provider.getSigner();
-    router      = new ethers.Contract(routerAddress, ABI, signer);
-    arenaRouter = new ethers.Contract(arenaRouterAddress, ABI, provider);
-    userAddress = await signer.getAddress();
-    currentAccount = userAddress;
-
+    provider        = new ethers.BrowserProvider(window.ethereum);
+    signer          = await provider.getSigner();
+    router          = new ethers.Contract(routerAddress, ABI, signer);
+    arenaRouter     = new ethers.Contract(arenaRouterAddress, ABI, provider);
+    userAddress     = await signer.getAddress();
+    currentAccount  = userAddress;
     document.querySelector(".connect-btn").style.display    = "none";
     document.getElementById("profileWrapper").style.display = "flex";
     document.getElementById("walletAddress").innerText     = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
     document.getElementById("swapBtn").disabled            = false;
     localStorage.setItem("connected","1");
-
     showToast("Wallet connected!", "success");
     updateBalances(); updateEstimate();
   } catch (err) {
@@ -164,7 +160,6 @@ async function updateBalances() {
   if (!userAddress) return;
   const inObj  = JSON.parse(document.getElementById("tokenInSelect").value);
   const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
-
   async function getBal(t) {
     if (t.address === "AVAX") {
       return parseFloat(ethers.formatEther(await provider.getBalance(userAddress))).toFixed(4);
@@ -173,7 +168,6 @@ async function updateBalances() {
     const b = await c.balanceOf(userAddress);
     return parseFloat(ethers.formatUnits(b, tokenDecimals[t.address])).toFixed(4);
   }
-
   document.getElementById("balanceIn").innerText  = "Balance: " + await getBal(inObj);
   document.getElementById("balanceOut").innerText = "Balance: " + await getBal(outObj);
 }
@@ -183,14 +177,12 @@ async function updateEstimate() {
   if (!provider) return;
   const amt = document.getElementById("tokenInAmount").value;
   if (!amt || isNaN(amt)) return;
-
   const inObj  = JSON.parse(document.getElementById("tokenInSelect").value);
   const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
   const path   = [
     inObj.address === "AVAX" ? WAVAX : inObj.address,
     outObj.address === "AVAX" ? WAVAX : outObj.address
   ];
-
   try {
     const res = await arenaRouter.getAmountsOut(ethers.parseUnits(amt, tokenDecimals[inObj.address]), path);
     const est = ethers.formatUnits(res[1], tokenDecimals[outObj.address]);
@@ -212,7 +204,6 @@ async function swap() {
     inObj.address === "AVAX" ? WAVAX : inObj.address,
     outObj.address === "AVAX" ? WAVAX : outObj.address
   ];
-
   try {
     if (inObj.address === "AVAX") {
       await router.swapExactAVAXForTokensSupportingFeeOnTransferTokens(0, path, userAddress, deadline, { value: amountIn });
@@ -261,7 +252,7 @@ function openModal(f) {
 }
 function closeModal() {
   document.getElementById("tokenModal").style.display = "none";
-  document.getElementById("tokenSearch").value          = "";
+  document.getElementById("tokenSearch").value = "";
 }
 function renderTokenList() {
   const list = document.getElementById("tokenList");
@@ -331,8 +322,10 @@ function disconnect() {
 async function viewTransactions() {
   // close profile menu
   document.getElementById("profileMenu").style.display = "none";
-  // open tx panel
-  openTxBar();
+  // open tx panel + overlay
+  document.getElementById("txOverlay").style.display = "block";
+  document.getElementById("txBar").classList.add("open");
+
   document.getElementById('txLoader').style.display = 'block';
   document.getElementById('txList').style.display   = 'none';
   document.getElementById('txEmpty').style.display  = 'none';
@@ -385,11 +378,9 @@ function renderTxList(txs) {
   });
 }
 
-function openTxBar() {
-  document.getElementById('txBar').classList.add('open');
-}
 function closeTxBar() {
   document.getElementById('txBar').classList.remove('open');
+  document.getElementById('txOverlay').style.display = 'none';
 }
 
 // === TOAST ===
