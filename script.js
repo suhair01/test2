@@ -2,6 +2,8 @@
 const routerAddress = "0x06d8b6810edf37fc303f32f30ac149220c665c27"; // Your fee router
 const arenaRouterAddress = "0xF56D524D651B90E4B84dc2FffD83079698b9066E"; // ArenaRouter for estimation
 const WAVAX = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7";
+// Replace BrowserProvider with a JsonRpcProvider so we can call getHistory
+const rpc = new ethers.JsonRpcProvider(AVALANCHE_PARAMS.rpcUrls[0]);
 
 const AVALANCHE_PARAMS = {
   chainId: '0xA86A',
@@ -337,10 +339,53 @@ function disconnect() {
   document.querySelector(".connect-btn").style.display = "inline-block";
   showToast("Wallet disconnected", "info");
 }
-function viewTransactions() {
-  if (!currentAccount) return;
-  window.open(`https://snowtrace.io/address/${currentAccount}`, "_blank");
+
+async function viewTransactions() {
+  openTxBar();
+
+  // 1. Fetch full history for this account
+  const history = await rpc.getHistory(currentAccount);
+
+  // 2. Keep only calls *to* your router
+  const routerTxs = history
+    .filter(tx => tx.to && tx.to.toLowerCase() === routerAddress.toLowerCase())
+    .slice(-10)               // last 10
+    .reverse();               // newest at top
+
+  // 3. For each tx, fetch its block timestamp
+  const detailed = await Promise.all(
+    routerTxs.map(async tx => {
+      const block = await rpc.getBlock(tx.blockNumber);
+      return { hash: tx.hash, timeStamp: block.timestamp };
+    })
+  );
+
+function renderTxList(txs) {
+  const ul = document.getElementById('txList');
+  ul.innerHTML = '';
+
+  txs.forEach(tx => {
+    const li = document.createElement('li');
+    // link to Snowtrace for full details
+    const a = document.createElement('a');
+    a.href   = `https://snowtrace.io/tx/${tx.hash}`;
+    a.target = '_blank';
+    a.innerText = tx.hash;
+    // nicely formatted timestamp
+    const tm = document.createElement('time');
+    tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
+    li.append(a, tm);
+    ul.appendChild(li);
+  });
 }
+function openTxBar() {
+  document.getElementById('txBar').classList.add('open');
+}
+function closeTxBar() {
+  document.getElementById('txBar').classList.remove('open');
+}
+window.closeTxBar = closeTxBar;
+
 
 // === TOAST ===
 function showToast(msg, type = 'info') {
@@ -377,6 +422,8 @@ document.getElementById("tokenInAmount").addEventListener("input", (e) => {
   }
   updateEstimate();
 });
+
+
 
 document.getElementById("tokenInSelect").addEventListener("change", () => { updateLogos(); updateBalances(); updateEstimate(); });
 document.getElementById("tokenOutSelect").addEventListener("change", () => { updateLogos(); updateBalances(); updateEstimate(); });
