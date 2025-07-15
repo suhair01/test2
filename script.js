@@ -40,6 +40,35 @@ const tokens = [
   { symbol: "JOE",   address: "0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd", logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/avalanche/assets/0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd/logo.png" }
 ];
 
+// === UTILITY: Ensure required elements exist ===
+function ensureElements() {
+  ["txOverlay","txBar","txLoader","txList","txEmpty"].forEach(id => {
+    if (!document.getElementById(id)) {
+      console.error(`Missing DOM element: ${id}`);
+    }
+  });
+}
+
+// === UTILITY: Ensure CSS for tx-panel is loaded ===
+function ensureCss() {
+  const testEl = document.createElement('div');
+  testEl.className = 'tx-bar';
+  document.body.appendChild(testEl);
+  const style = getComputedStyle(testEl);
+  if (!style.transition.includes('right')) {
+    console.error("CSS for .tx-bar.open is not applied or loaded.");
+  }
+  document.body.removeChild(testEl);
+}
+
+// === UTILITY: Ensure user is connected ===
+function ensureLoggedIn() {
+  if (!currentAccount) {
+    showToast("Please connect your wallet first", "error");
+    throw new Error("Wallet not connected");
+  }
+}
+
 // === POPULATE TOKENS ===
 async function populateTokens() {
   provider    = new ethers.BrowserProvider(window.ethereum);
@@ -85,12 +114,8 @@ function updateLogos() {
 function reverseTokens() {
   const inSel  = document.getElementById("tokenInSelect");
   const outSel = document.getElementById("tokenOutSelect");
-  const tmp    = inSel.selectedIndex;
-  inSel.selectedIndex  = outSel.selectedIndex;
-  outSel.selectedIndex = tmp;
-  updateLogos();
-  updateBalances();
-  updateEstimate();
+  [inSel.selectedIndex, outSel.selectedIndex] = [outSel.selectedIndex, inSel.selectedIndex];
+  updateLogos(); updateBalances(); updateEstimate();
 }
 
 // === CONNECT WALLET ===
@@ -105,14 +130,14 @@ async function connect() {
     if (chainId !== AVALANCHE_PARAMS.chainId) {
       try {
         await ethereum.request({
-          method:"wallet_switchEthereumChain",
-          params:[{chainId: AVALANCHE_PARAMS.chainId}]
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: AVALANCHE_PARAMS.chainId }]
         });
       } catch (err) {
         if (err.code === 4902) {
           await ethereum.request({
-            method:"wallet_addEthereumChain",
-            params:[AVALANCHE_PARAMS]
+            method: "wallet_addEthereumChain",
+            params: [AVALANCHE_PARAMS]
           });
         } else {
           showToast("Please switch to Avalanche", "error");
@@ -136,8 +161,7 @@ async function connect() {
     localStorage.setItem("connected","1");
 
     showToast("Wallet connected!", "success");
-    updateBalances();
-    updateEstimate();
+    updateBalances(); updateEstimate();
   } catch (err) {
     console.error(err);
     showToast("Connection failed", "error");
@@ -148,15 +172,15 @@ async function connect() {
 async function switchToAvalanche() {
   try {
     await ethereum.request({
-      method:"wallet_switchEthereumChain",
-      params:[{chainId: AVALANCHE_PARAMS.chainId}]
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: AVALANCHE_PARAMS.chainId }]
     });
     location.reload();
   } catch (err) {
     if (err.code === 4902) {
       await ethereum.request({
-        method:"wallet_addEthereumChain",
-        params:[AVALANCHE_PARAMS]
+        method: "wallet_addEthereumChain",
+        params: [AVALANCHE_PARAMS]
       });
       location.reload();
     } else {
@@ -328,10 +352,7 @@ function selectToken(token) {
       sel.selectedIndex = i;
     }
   });
-  closeModal();
-  updateLogos();
-  updateBalances();
-  updateEstimate();
+  closeModal(); updateLogos(); updateBalances(); updateEstimate();
 }
 function filterTokens() {
   const q = document.getElementById("tokenSearch").value.toLowerCase();
@@ -373,6 +394,10 @@ function disconnect() {
 
 // === RECENT TRANSACTIONS PANEL & LOGIC ===
 async function viewTransactions() {
+  ensureElements();
+  ensureCss();
+  ensureLoggedIn();
+
   // close profile menu
   document.getElementById("profileMenu").style.display = "none";
   // open overlay + slide-in panel
@@ -385,10 +410,8 @@ async function viewTransactions() {
 
   try {
     const resp = await fetch(
-      `https://api.snowtrace.io/api`
-      + `?module=account&action=txlist`
-      + `&address=${currentAccount}`
-      + `&startblock=0&endblock=99999999&sort=desc`
+      `https://api.snowtrace.io/api?module=account&action=txlist&address=${currentAccount}
+       &startblock=0&endblock=99999999&sort=desc`
     );
     const json = await resp.json();
     if (json.status !== '1') throw new Error(json.message);
