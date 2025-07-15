@@ -1,3 +1,4 @@
+
 // script.js
 
 // === CONFIG ===
@@ -329,6 +330,9 @@ function disconnect() {
 
 // === RECENT TRANSACTIONS PANEL & LOGIC ===
 async function viewTransactions() {
+  // ✅ CLOSE PROFILE DROPDOWN
+  document.getElementById("profileMenu").style.display = "none";
+
   openTxBar();
   document.getElementById('txLoader').style.display = 'block';
   document.getElementById('txList').style.display   = 'none';
@@ -368,6 +372,8 @@ async function viewTransactions() {
     document.getElementById('txLoader').style.display = 'none';
   }
 }
+
+
 
 function renderTxList(txs) {
   const ul = document.getElementById('txList');
