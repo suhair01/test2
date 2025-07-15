@@ -12,7 +12,7 @@ const AVALANCHE_PARAMS   = {
   blockExplorerUrls: ['https://snowtrace.io']
 };
 
-// JsonRpcProvider for on-chain history
+// JSON-RPC provider (for blocks)
 const rpc = new ethers.JsonRpcProvider(AVALANCHE_PARAMS.rpcUrls[0]);
 
 // ABIs
@@ -53,7 +53,7 @@ async function populateTokens() {
 
   for (const t of tokens) {
     const opt = document.createElement("option");
-    opt.value   = JSON.stringify(t);
+    opt.value     = JSON.stringify(t);
     opt.innerText = t.symbol;
     inSel.appendChild(opt.cloneNode(true));
     outSel.appendChild(opt.cloneNode(true));
@@ -75,9 +75,9 @@ async function populateTokens() {
 function updateLogos() {
   const inObj  = JSON.parse(document.getElementById("tokenInSelect").value);
   const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
-  document.getElementById("inLogo").src    = inObj.logo;
+  document.getElementById("inLogo").src        = inObj.logo;
   document.getElementById("inSymbol").innerText  = inObj.symbol;
-  document.getElementById("outLogo").src   = outObj.logo;
+  document.getElementById("outLogo").src       = outObj.logo;
   document.getElementById("outSymbol").innerText = outObj.symbol;
 }
 
@@ -98,9 +98,8 @@ async function connect() {
     return;
   }
   try {
-    const accounts = await ethereum.request({ method: "eth_requestAccounts" });
-    const chainId  = await ethereum.request({ method: "eth_chainId" });
-
+    await ethereum.request({ method: "eth_requestAccounts" });
+    const chainId = await ethereum.request({ method: "eth_chainId" });
     if (chainId !== AVALANCHE_PARAMS.chainId) {
       try {
         await ethereum.request({ method:"wallet_switchEthereumChain", params:[{chainId: AVALANCHE_PARAMS.chainId}] });
@@ -138,7 +137,7 @@ async function connect() {
 // === SWITCH NETWORK ===
 async function switchToAvalanche() {
   try {
-    await ethereum.request({ method:"wallet_switchEthereumChain", params:[{chainId: AVALANCHE_PARAMS.chainId}] });
+    await ethereum.request({ method: "wallet_switchEthereumChain", params:[{chainId: AVALANCHE_PARAMS.chainId}] });
     location.reload();
   } catch (err) {
     if (err.code === 4902) {
@@ -191,10 +190,11 @@ async function updateEstimate() {
     inObj.address === "AVAX" ? WAVAX : inObj.address,
     outObj.address === "AVAX" ? WAVAX : outObj.address
   ];
+
   try {
     const res = await arenaRouter.getAmountsOut(ethers.parseUnits(amt, tokenDecimals[inObj.address]), path);
     const est = ethers.formatUnits(res[1], tokenDecimals[outObj.address]);
-    document.getElementById("tokenOutAmount").value = 
+    document.getElementById("tokenOutAmount").value =
       outObj.address === "AVAX" ? parseFloat(est).toFixed(4) : Math.floor(parseFloat(est));
   } catch {
     document.getElementById("tokenOutAmount").value = "";
@@ -235,15 +235,15 @@ async function swap() {
 }
 
 // === SET PERCENTAGE ===
-function setPercentage(pct) {
-  const bal = parseFloat(document.getElementById("balanceIn").innerText.split(":")[1]);
-  if (isNaN(bal)) return;
-  const inObj = JSON.parse(document.getElementById("tokenInSelect").value);
-  const val   = inObj.address === "AVAX"
-                ? parseFloat((bal * pct/100).toFixed(4))
-                : Math.floor(bal * pct/100);
-  document.getElementById("tokenInAmount").value = val;
-  updateEstimate();
+function setPercentage(pct) {  
+  const bal = parseFloat(document.getElementById("balanceIn").innerText.split(":")[1]);  
+  if (isNaN(bal)) return;  
+  const inObj = JSON.parse(document.getElementById("tokenInSelect").value);  
+  const val   = inObj.address === "AVAX"  
+                ? parseFloat((bal * pct/100).toFixed(4))  
+                : Math.floor(bal * pct/100);  
+  document.getElementById("tokenInAmount").value = val;  
+  updateEstimate();  
 }
 
 // === SLIPPAGE TOGGLE ===
@@ -261,7 +261,7 @@ function openModal(f) {
 }
 function closeModal() {
   document.getElementById("tokenModal").style.display = "none";
-  document.getElementById("tokenSearch").value = "";
+  document.getElementById("tokenSearch").value          = "";
 }
 function renderTokenList() {
   const list = document.getElementById("tokenList");
@@ -323,11 +323,11 @@ function disconnect() {
   localStorage.removeItem("connected");
   currentAccount = null;
   document.getElementById("profileWrapper").style.display = "none";
-  document.querySelector(".connect-btn").style.display = "inline-block";
+  document.querySelector(".connect-btn").style.display    = "inline-block";
   showToast("Wallet disconnected", "info");
 }
 
-// === RECENT TRANSACTIONS PANEL ===
+// === RECENT TRANSACTIONS PANEL & LOGIC ===
 async function viewTransactions() {
   openTxBar();
   document.getElementById('txLoader').style.display = 'block';
@@ -335,7 +335,6 @@ async function viewTransactions() {
   document.getElementById('txEmpty').style.display  = 'none';
 
   try {
-    // 1) Fetch last 10 txns to your router via Snowtrace REST (no API key needed)
     const resp = await fetch(
       `https://api.snowtrace.io/api` +
       `?module=account` +
@@ -348,22 +347,19 @@ async function viewTransactions() {
     const json = await resp.json();
     if (json.status !== '1') throw new Error(json.message);
 
-    // 2) Filter to just your router interactions, take the first 10
     const routerTxs = json.result
       .filter(tx => tx.to.toLowerCase() === routerAddress.toLowerCase())
       .slice(0, 10);
 
-    // 3) Render or empty-state
     if (routerTxs.length) {
       renderTxList(routerTxs.map(tx => ({
-        hash: tx.hash,
+        hash:      tx.hash,
         timeStamp: Number(tx.timeStamp)
       })));
       document.getElementById('txList').style.display = 'block';
     } else {
       document.getElementById('txEmpty').style.display = 'block';
     }
-
   } catch (err) {
     console.error(err);
     document.getElementById('txEmpty').innerText = 'Failed to load transactions.';
@@ -389,21 +385,14 @@ function renderTxList(txs) {
   });
 }
 
-function closeTxBar() {
-  document.getElementById('txBar').classList.remove('open');
-  document.getElementById('txOverlay').style.display = 'none';
-}
-
 function openTxBar() {
   document.getElementById('txOverlay').style.display = 'block';
   document.getElementById('txBar').classList.add('open');
 }
-
-// export
-window.viewTransactions = viewTransactions;
-window.openTxBar       = openTxBar;
-window.closeTxBar      = closeTxBar;
-
+function closeTxBar() {
+  document.getElementById('txBar').classList.remove('open');
+  document.getElementById('txOverlay').style.display = 'none';
+}
 
 // === TOAST ===
 function showToast(msg, type = 'info') {
