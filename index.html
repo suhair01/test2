@@ -15,11 +15,8 @@
       <span class="brand-name">Avaly</span>
     </div>
     <button class="connect-btn" onclick="connect()">Connect Wallet</button>
-
-    <!-- Profile & Transactions -->
     <div class="profile-wrapper" id="profileWrapper" style="display:none;">
       <button class="profile-btn" onclick="toggleProfileMenu()">👤</button>
-      <!-- Profile Menu -->
       <div class="profile-menu" id="profileMenu">
         <div class="wallet-info">
           <span id="walletAddress">0x123...abc</span>
@@ -29,19 +26,20 @@
         <button onclick="switchToAvalanche()">🔁 Switch to Avalanche</button>
         <button onclick="disconnect()">❌ Disconnect</button>
       </div>
-      <!-- Transactions Dropdown -->
-      <div id="txBar" class="tx-bar">
-        <div class="tx-header">
-          <span>Recent Transactions</span>
-          <button class="tx-close" onclick="closeTxBar()">×</button>
-        </div>
-        <div id="txLoader" class="tx-loader"></div>
-        <ul id="txList" class="tx-list"></ul>
-        <div id="txEmpty" class="tx-empty">No transactions found.</div>
-      </div>
     </div>
-
     <button id="switchNetworkBtn" style="display:none;" onclick="switchToAvalanche()">Switch to Avalanche</button>
+  </div>
+
+  <!-- Transactions Overlay & Slide-Out Panel -->
+  <div id="txOverlay" class="tx-overlay" onclick="closeTxBar()"></div>
+  <div id="txBar" class="tx-bar">
+    <div class="tx-header">
+      <span>Recent Transactions</span>
+      <button class="tx-close" onclick="closeTxBar()">×</button>
+    </div>
+    <div id="txLoader" class="tx-loader"></div>
+    <ul id="txList" class="tx-list"></ul>
+    <div id="txEmpty" class="tx-empty">No transactions found.</div>
   </div>
 
   <!-- Swap UI -->
@@ -107,7 +105,12 @@
         <span class="modal-title">Select a token</span>
         <button class="close-modal" onclick="closeModal()">×</button>
       </div>
-      <input type="text" id="tokenSearch" placeholder="Search name or address" oninput="filterTokens()" />
+      <input
+        type="text"
+        id="tokenSearch"
+        placeholder="Search name or address"
+        oninput="filterTokens()"
+      />
       <div id="tokenList"></div>
     </div>
   </div>
