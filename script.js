@@ -88,7 +88,9 @@ function reverseTokens() {
   const tmp    = inSel.selectedIndex;
   inSel.selectedIndex  = outSel.selectedIndex;
   outSel.selectedIndex = tmp;
-  updateLogos(); updateBalances(); updateEstimate();
+  updateLogos();
+  updateBalances();
+  updateEstimate();
 }
 
 // === CONNECT WALLET ===
@@ -102,29 +104,40 @@ async function connect() {
     const chainId = await ethereum.request({ method: "eth_chainId" });
     if (chainId !== AVALANCHE_PARAMS.chainId) {
       try {
-        await ethereum.request({ method:"wallet_switchEthereumChain", params:[{chainId: AVALANCHE_PARAMS.chainId}] });
+        await ethereum.request({
+          method:"wallet_switchEthereumChain",
+          params:[{chainId: AVALANCHE_PARAMS.chainId}]
+        });
       } catch (err) {
         if (err.code === 4902) {
-          await ethereum.request({ method:"wallet_addEthereumChain", params:[AVALANCHE_PARAMS] });
+          await ethereum.request({
+            method:"wallet_addEthereumChain",
+            params:[AVALANCHE_PARAMS]
+          });
         } else {
           showToast("Please switch to Avalanche", "error");
           return;
         }
       }
     }
+
     provider        = new ethers.BrowserProvider(window.ethereum);
     signer          = await provider.getSigner();
     router          = new ethers.Contract(routerAddress, ABI, signer);
     arenaRouter     = new ethers.Contract(arenaRouterAddress, ABI, provider);
     userAddress     = await signer.getAddress();
     currentAccount  = userAddress;
+
     document.querySelector(".connect-btn").style.display    = "none";
     document.getElementById("profileWrapper").style.display = "flex";
-    document.getElementById("walletAddress").innerText     = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+    document.getElementById("walletAddress").innerText     =
+      userAddress.slice(0,6) + "..." + userAddress.slice(-4);
     document.getElementById("swapBtn").disabled            = false;
     localStorage.setItem("connected","1");
+
     showToast("Wallet connected!", "success");
-    updateBalances(); updateEstimate();
+    updateBalances();
+    updateEstimate();
   } catch (err) {
     console.error(err);
     showToast("Connection failed", "error");
@@ -134,11 +147,17 @@ async function connect() {
 // === SWITCH NETWORK ===
 async function switchToAvalanche() {
   try {
-    await ethereum.request({ method:"wallet_switchEthereumChain", params:[{chainId: AVALANCHE_PARAMS.chainId}] });
+    await ethereum.request({
+      method:"wallet_switchEthereumChain",
+      params:[{chainId: AVALANCHE_PARAMS.chainId}]
+    });
     location.reload();
   } catch (err) {
     if (err.code === 4902) {
-      await ethereum.request({ method:"wallet_addEthereumChain", params:[AVALANCHE_PARAMS] });
+      await ethereum.request({
+        method:"wallet_addEthereumChain",
+        params:[AVALANCHE_PARAMS]
+      });
       location.reload();
     } else {
       showToast("Switch network failed!", "error");
@@ -161,16 +180,24 @@ async function updateBalances() {
   if (!userAddress) return;
   const inObj  = JSON.parse(document.getElementById("tokenInSelect").value);
   const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
+
   async function getBal(t) {
     if (t.address === "AVAX") {
-      return parseFloat(ethers.formatEther(await provider.getBalance(userAddress))).toFixed(4);
+      return parseFloat(
+        ethers.formatEther(await provider.getBalance(userAddress))
+      ).toFixed(4);
     }
     const c = new ethers.Contract(t.address, ERC20_ABI, provider);
     const b = await c.balanceOf(userAddress);
-    return parseFloat(ethers.formatUnits(b, tokenDecimals[t.address])).toFixed(4);
+    return parseFloat(
+      ethers.formatUnits(b, tokenDecimals[t.address])
+    ).toFixed(4);
   }
-  document.getElementById("balanceIn").innerText  = "Balance: " + await getBal(inObj);
-  document.getElementById("balanceOut").innerText = "Balance: " + await getBal(outObj);
+
+  document.getElementById("balanceIn").innerText  =
+    "Balance: " + await getBal(inObj);
+  document.getElementById("balanceOut").innerText =
+    "Balance: " + await getBal(outObj);
 }
 
 // === UPDATE ESTIMATE ===
@@ -178,17 +205,24 @@ async function updateEstimate() {
   if (!provider) return;
   const amt = document.getElementById("tokenInAmount").value;
   if (!amt || isNaN(amt)) return;
+
   const inObj  = JSON.parse(document.getElementById("tokenInSelect").value);
   const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
   const path   = [
     inObj.address === "AVAX" ? WAVAX : inObj.address,
     outObj.address === "AVAX" ? WAVAX : outObj.address
   ];
+
   try {
-    const res = await arenaRouter.getAmountsOut(ethers.parseUnits(amt, tokenDecimals[inObj.address]), path);
+    const res = await arenaRouter.getAmountsOut(
+      ethers.parseUnits(amt, tokenDecimals[inObj.address]),
+      path
+    );
     const est = ethers.formatUnits(res[1], tokenDecimals[outObj.address]);
     document.getElementById("tokenOutAmount").value =
-      outObj.address === "AVAX" ? parseFloat(est).toFixed(4) : Math.floor(parseFloat(est));
+      outObj.address === "AVAX"
+        ? parseFloat(est).toFixed(4)
+        : Math.floor(parseFloat(est));
   } catch {
     document.getElementById("tokenOutAmount").value = "";
   }
@@ -205,18 +239,25 @@ async function swap() {
     inObj.address === "AVAX" ? WAVAX : inObj.address,
     outObj.address === "AVAX" ? WAVAX : outObj.address
   ];
+
   try {
     if (inObj.address === "AVAX") {
-      await router.swapExactAVAXForTokensSupportingFeeOnTransferTokens(0, path, userAddress, deadline, { value: amountIn });
+      await router.swapExactAVAXForTokensSupportingFeeOnTransferTokens(
+        0, path, userAddress, deadline, { value: amountIn }
+      );
     } else {
       const tC = new ethers.Contract(inObj.address, ERC20_ABI, signer);
       if ((await tC.allowance(userAddress, routerAddress)) < amountIn) {
         await tC.approve(routerAddress, ethers.MaxUint256);
       }
       if (outObj.address === "AVAX") {
-        await router.swapExactTokensForAVAXSupportingFeeOnTransferTokens(amountIn, 0, path, userAddress, deadline);
+        await router.swapExactTokensForAVAXSupportingFeeOnTransferTokens(
+          amountIn, 0, path, userAddress, deadline
+        );
       } else {
-        await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn, 0, path, userAddress, deadline);
+        await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+          amountIn, 0, path, userAddress, deadline
+        );
       }
     }
     showToast("Swap submitted!", "success");
@@ -228,12 +269,15 @@ async function swap() {
 
 // === SET PERCENTAGE ===
 function setPercentage(pct) {
-  const bal = parseFloat(document.getElementById("balanceIn").innerText.split(":")[1]);
+  const bal = parseFloat(
+    document.getElementById("balanceIn").innerText.split(":")[1]
+  );
   if (isNaN(bal)) return;
   const inObj = JSON.parse(document.getElementById("tokenInSelect").value);
-  const val   = inObj.address === "AVAX"
-                ? parseFloat((bal * pct/100).toFixed(4))
-                : Math.floor(bal * pct/100);
+  const val = inObj.address === "AVAX"
+    ? parseFloat((bal * pct/100).toFixed(4))
+    : Math.floor(bal * pct/100);
+
   document.getElementById("tokenInAmount").value = val;
   updateEstimate();
 }
@@ -280,20 +324,28 @@ function selectToken(token) {
     ? document.getElementById("tokenInSelect")
     : document.getElementById("tokenOutSelect");
   [...sel.options].forEach((opt, i) => {
-    if (JSON.parse(opt.value).address === token.address) sel.selectedIndex = i;
+    if (JSON.parse(opt.value).address === token.address) {
+      sel.selectedIndex = i;
+    }
   });
-  closeModal(); updateLogos(); updateBalances(); updateEstimate();
+  closeModal();
+  updateLogos();
+  updateBalances();
+  updateEstimate();
 }
 function filterTokens() {
   const q = document.getElementById("tokenSearch").value.toLowerCase();
   document.querySelectorAll("#tokenList .token-item").forEach((item, i) => {
     const t = tokens[i];
-    item.style.display = (t.symbol.toLowerCase().includes(q) || t.address.toLowerCase().includes(q))
+    item.style.display = (t.symbol.toLowerCase().includes(q) ||
+                          t.address.toLowerCase().includes(q))
       ? "flex" : "none";
   });
 }
 function shorten(addr) {
-  return addr === "AVAX" ? "AVAX" : addr.slice(0, 6) + "..." + addr.slice(-4);
+  return addr === "AVAX"
+    ? "AVAX"
+    : addr.slice(0, 6) + "..." + addr.slice(-4);
 }
 function copyToClipboard(txt) {
   navigator.clipboard.writeText(txt);
@@ -303,8 +355,6 @@ function copyToClipboard(txt) {
 // === PROFILE DROPDOWN ===
 function toggleProfileMenu() {
   const menu = document.getElementById("profileMenu");
-  // hide tx menu if open
-  document.getElementById("txMenu").style.display = "none";
   menu.style.display = menu.style.display === "flex" ? "none" : "flex";
 }
 function copyWallet() {
@@ -316,36 +366,32 @@ function copyWallet() {
 function disconnect() {
   localStorage.removeItem("connected");
   currentAccount = null;
-  document.getElementById("profileWrapper").style.display    = "none";
+  document.getElementById("profileWrapper").style.display = "none";
   document.querySelector(".connect-btn").style.display = "inline-block";
   showToast("Wallet disconnected", "info");
 }
 
-// === TRANSACTIONS DROPDOWN ===
+// === RECENT TRANSACTIONS PANEL & LOGIC ===
 async function viewTransactions() {
-  // hide profile menu
+  // close profile menu
   document.getElementById("profileMenu").style.display = "none";
+  // open overlay + slide-in panel
+  document.getElementById("txOverlay").style.display = "block";
+  document.getElementById("txBar").classList.add("open");
 
-  const txMenu  = document.getElementById("txMenu");
-  const loader  = document.getElementById("txLoader");
-  const list    = document.getElementById("txList");
-  const emptyEl = document.getElementById("txEmpty");
-
-  // show tx menu
-  txMenu.style.display  = "flex";
-  loader.style.display  = "block";
-  list.style.display    = "none";
-  emptyEl.style.display = "none";
+  document.getElementById("txLoader").style.display = "block";
+  document.getElementById("txList").style.display   = "none";
+  document.getElementById("txEmpty").style.display  = "none";
 
   try {
     const resp = await fetch(
-      `https://api.snowtrace.io/api` +
-      `?module=account&action=txlist` +
-      `&address=${currentAccount}` +
-      `&startblock=0&endblock=99999999&sort=desc`
+      `https://api.snowtrace.io/api`
+      + `?module=account&action=txlist`
+      + `&address=${currentAccount}`
+      + `&startblock=0&endblock=99999999&sort=desc`
     );
     const json = await resp.json();
-    if (json.status !== "1") throw new Error(json.message);
+    if (json.status !== '1') throw new Error(json.message);
 
     const routerTxs = json.result
       .filter(tx => tx.to.toLowerCase() === routerAddress.toLowerCase())
@@ -356,16 +402,17 @@ async function viewTransactions() {
         hash:      tx.hash,
         timeStamp: Number(tx.timeStamp)
       })));
-      list.style.display = "block";
+      document.getElementById("txList").style.display = "block";
     } else {
-      emptyEl.style.display = "block";
+      document.getElementById("txEmpty").style.display = "block";
     }
   } catch (err) {
     console.error(err);
-    emptyEl.innerText = "Failed to load transactions.";
-    emptyEl.style.display = "block";
+    const empty = document.getElementById("txEmpty");
+    empty.innerText = "Failed to load transactions.";
+    empty.style.display = "block";
   } finally {
-    loader.style.display = "none";
+    document.getElementById("txLoader").style.display = "none";
   }
 }
 
@@ -385,13 +432,13 @@ function renderTxList(txs) {
   });
 }
 
-// === CLOSE TX DROPDOWN ===
 function closeTxBar() {
-  document.getElementById("txMenu").style.display = "none";
+  document.getElementById("txBar").classList.remove("open");
+  document.getElementById("txOverlay").style.display = "none";
 }
 
 // === TOAST ===
-function showToast(msg, type = "info") {
+function showToast(msg, type = 'info') {
   const t = document.createElement("div");
   t.className = `toast ${type}`;
   t.innerText = msg;
@@ -402,14 +449,14 @@ function showToast(msg, type = "info") {
 // === EVENT LISTENERS ===
 window.addEventListener("DOMContentLoaded", async () => {
   await populateTokens();
-  if (localStorage.getItem("connected")) await connect();
+  if (localStorage.getItem("connected")) {
+    await connect();
+  }
 });
 window.addEventListener("click", (e) => {
-  // close profile or tx dropdown if clicking outside
-  const pw = document.getElementById("profileWrapper");
-  if (!pw.contains(e.target)) {
-    document.getElementById("profileMenu").style.display = "none";
-    document.getElementById("txMenu").style.display      = "none";
+  const menu = document.getElementById("profileMenu");
+  if (!document.getElementById("profileWrapper").contains(e.target)) {
+    menu.style.display = "none";
   }
 });
 
@@ -429,3 +476,4 @@ window.copyWallet        = copyWallet;
 window.disconnect        = disconnect;
 window.viewTransactions  = viewTransactions;
 window.closeTxBar        = closeTxBar;
+
