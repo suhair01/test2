@@ -495,3 +495,25 @@ body {
   border: none;
   cursor: pointer;
 }
+
+.tx-bar {
+  position: fixed; top:0; right:-320px;
+  width:320px; height:100%;
+  background:#fff; box-shadow:-4px 0 12px rgba(0,0,0,0.1);
+  transition:right 0.3s ease; display:flex; flex-direction:column;
+  z-index:100;
+}
+.tx-bar.open { right:0; }
+.tx-header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:12px; border-bottom:1px solid #e0e0e0; font-weight:bold;
+}
+.tx-header button { background:none; border:none; font-size:20px; cursor:pointer; }
+.tx-list {
+  list-style:none; padding:0 12px; overflow-y:auto; flex:1;
+}
+.tx-list li {
+  padding:8px 0; border-bottom:1px solid #e0e0e0; font-size:13px;
+}
+.tx-list li a { color:#e82c1a; text-decoration:none; word-break:break-all; }
+.tx-list li time { display:block; font-size:11px; color:#666; }
