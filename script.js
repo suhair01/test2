@@ -386,12 +386,10 @@ function renderTxList(txs) {
 }
 
 function openTxBar() {
-  document.getElementById('txOverlay').style.display = 'block';
-  document.getElementById('txBar').classList.add('open');
+  document.getElementById('txDropdown').style.display = 'flex';
 }
 function closeTxBar() {
-  document.getElementById('txBar').classList.remove('open');
-  document.getElementById('txOverlay').style.display = 'none';
+  document.getElementById('txDropdown').style.display = 'none';
 }
 
 // === TOAST ===
