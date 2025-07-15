@@ -137,7 +137,7 @@ async function connect() {
 // === SWITCH NETWORK ===
 async function switchToAvalanche() {
   try {
-    await ethereum.request({ method: "wallet_switchEthereumChain", params:[{chainId: AVALANCHE_PARAMS.chainId}] });
+    await ethereum.request({ method:"wallet_switchEthereumChain", params:[{chainId: AVALANCHE_PARAMS.chainId}] });
     location.reload();
   } catch (err) {
     if (err.code === 4902) {
@@ -235,15 +235,15 @@ async function swap() {
 }
 
 // === SET PERCENTAGE ===
-function setPercentage(pct) {  
-  const bal = parseFloat(document.getElementById("balanceIn").innerText.split(":")[1]);  
-  if (isNaN(bal)) return;  
-  const inObj = JSON.parse(document.getElementById("tokenInSelect").value);  
-  const val   = inObj.address === "AVAX"  
-                ? parseFloat((bal * pct/100).toFixed(4))  
-                : Math.floor(bal * pct/100);  
-  document.getElementById("tokenInAmount").value = val;  
-  updateEstimate();  
+function setPercentage(pct) {
+  const bal = parseFloat(document.getElementById("balanceIn").innerText.split(":")[1]);
+  if (isNaN(bal)) return;
+  const inObj = JSON.parse(document.getElementById("tokenInSelect").value);
+  const val   = inObj.address === "AVAX"
+                ? parseFloat((bal * pct/100).toFixed(4))
+                : Math.floor(bal * pct/100);
+  document.getElementById("tokenInAmount").value = val;
+  updateEstimate();
 }
 
 // === SLIPPAGE TOGGLE ===
@@ -322,13 +322,16 @@ function copyWallet() {
 function disconnect() {
   localStorage.removeItem("connected");
   currentAccount = null;
-  document.getElementById("profileWrapper").style.display = "none";
-  document.querySelector(".connect-btn").style.display    = "inline-block";
+  document.getElementById("profileWrapper").style.display    = "none";
+  document.querySelector(".connect-btn").style.display = "inline-block";
   showToast("Wallet disconnected", "info");
 }
 
 // === RECENT TRANSACTIONS PANEL & LOGIC ===
 async function viewTransactions() {
+  // close profile menu
+  document.getElementById("profileMenu").style.display = "none";
+  // open tx panel
   openTxBar();
   document.getElementById('txLoader').style.display = 'block';
   document.getElementById('txList').style.display   = 'none';
@@ -337,12 +340,9 @@ async function viewTransactions() {
   try {
     const resp = await fetch(
       `https://api.snowtrace.io/api` +
-      `?module=account` +
-      `&action=txlist` +
+      `?module=account&action=txlist` +
       `&address=${currentAccount}` +
-      `&startblock=0` +
-      `&endblock=99999999` +
-      `&sort=desc`
+      `&startblock=0&endblock=99999999&sort=desc`
     );
     const json = await resp.json();
     if (json.status !== '1') throw new Error(json.message);
@@ -386,12 +386,10 @@ function renderTxList(txs) {
 }
 
 function openTxBar() {
-  document.getElementById('txOverlay').style.display = 'block';
   document.getElementById('txBar').classList.add('open');
 }
 function closeTxBar() {
   document.getElementById('txBar').classList.remove('open');
-  document.getElementById('txOverlay').style.display = 'none';
 }
 
 // === TOAST ===
@@ -416,18 +414,18 @@ window.addEventListener("click", (e) => {
 });
 
 // === GLOBAL SHORTCUTS ===
-window.connect            = connect;
-window.reverseTokens      = reverseTokens;
-window.swap               = swap;
-window.setPercentage      = setPercentage;
-window.toggleSlippage     = toggleSlippage;
-window.openModal          = openModal;
-window.closeModal         = closeModal;
-window.copyToClipboard    = copyToClipboard;
-window.switchToAvalanche  = switchToAvalanche;
-window.copyAddress        = copyAddress;
-window.toggleProfileMenu  = toggleProfileMenu;
-window.copyWallet         = copyWallet;
-window.disconnect         = disconnect;
-window.viewTransactions   = viewTransactions;
-window.closeTxBar         = closeTxBar;
+window.connect           = connect;
+window.reverseTokens     = reverseTokens;
+window.swap              = swap;
+window.setPercentage     = setPercentage;
+window.toggleSlippage    = toggleSlippage;
+window.openModal         = openModal;
+window.closeModal        = closeModal;
+window.copyToClipboard   = copyToClipboard;
+window.switchToAvalanche = switchToAvalanche;
+window.copyAddress       = copyAddress;
+window.toggleProfileMenu = toggleProfileMenu;
+window.copyWallet        = copyWallet;
+window.disconnect        = disconnect;
+window.viewTransactions  = viewTransactions;
+window.closeTxBar        = closeTxBar;
