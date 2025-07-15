@@ -328,24 +328,43 @@ function disconnect() {
 }
 
 // === RECENT TRANSACTIONS PANEL ===
+// === RECENT TXNS PANEL & LOGIC ===
 async function viewTransactions() {
-  openTxBar();
+  // show overlay + panel
+  document.getElementById('txOverlay').style.display = 'block';
+  document.getElementById('txBar').classList.add('open');
 
-  // 1. Fetch full history for this account
-  const history = await rpc.getHistory(currentAccount);
+  // show loader, hide list+empty
+  document.getElementById('txLoader').style.display = 'block';
+  document.getElementById('txList').style.display   = 'none';
+  document.getElementById('txEmpty').style.display  = 'none';
 
-  // 2. Filter to calls TO router
-  const routerTxs = history
-    .filter(tx => tx.to && tx.to.toLowerCase() === routerAddress.toLowerCase())
-    .slice(-10).reverse();
+  try {
+    // fetch on-chain history
+    const history = await rpc.getHistory(currentAccount);
+    const routerTxs = history
+      .filter(tx => tx.to && tx.to.toLowerCase() === routerAddress.toLowerCase())
+      .slice(-10).reverse();
 
-  // 3. Fetch timestamps
-  const detailed = await Promise.all(routerTxs.map(async tx => {
-    const block = await rpc.getBlock(tx.blockNumber);
-    return { hash: tx.hash, timeStamp: block.timestamp };
-  }));
+    // load timestamps
+    const detailed = await Promise.all(routerTxs.map(async tx => {
+      const block = await rpc.getBlock(tx.blockNumber);
+      return { hash: tx.hash, timeStamp: block.timestamp };
+    }));
 
-  renderTxList(detailed);
+    if (detailed.length) {
+      renderTxList(detailed);
+      document.getElementById('txList').style.display = 'block';
+    } else {
+      document.getElementById('txEmpty').style.display = 'block';
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById('txEmpty').innerText = 'Failed to load transactions.';
+    document.getElementById('txEmpty').style.display = 'block';
+  } finally {
+    document.getElementById('txLoader').style.display = 'none';
+  }
 }
 
 function renderTxList(txs) {
@@ -364,12 +383,21 @@ function renderTxList(txs) {
   });
 }
 
-function openTxBar() {
-  document.getElementById('txBar').classList.add('open');
-}
 function closeTxBar() {
   document.getElementById('txBar').classList.remove('open');
+  document.getElementById('txOverlay').style.display = 'none';
 }
+
+function openTxBar() {
+  document.getElementById('txOverlay').style.display = 'block';
+  document.getElementById('txBar').classList.add('open');
+}
+
+// export
+window.viewTransactions = viewTransactions;
+window.openTxBar       = openTxBar;
+window.closeTxBar      = closeTxBar;
+
 
 // === TOAST ===
 function showToast(msg, type = 'info') {
