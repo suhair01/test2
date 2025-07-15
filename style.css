@@ -435,65 +435,81 @@ body {
   to { opacity: 0; transform: translateY(20px); }
 }
 
-/* Transactions dropdown component */
-#txMenu {
-  /* inherits styles above */
+/* Transactions overlay + slide-in panel */
+#txOverlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 998;
 }
-#txMenu.open {
-  display: flex !important;
+#txBar {
+  position: fixed;
+  top: 0; right: -360px;
+  width: 340px; height: 100%;
+  background: var(--card);
+  box-shadow: -4px 0 12px rgba(0,0,0,0.2);
+  border-radius: 16px 0 0 16px;
+  transition: right 0.3s ease;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
 }
-#txMenu .tx-header {
+#txBar.open {
+  right: 0;
+}
+#txBar .tx-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 }
-#txMenu .tx-close {
+#txBar .tx-close {
   background: none;
   border: none;
   font-size: 18px;
   cursor: pointer;
 }
-#txMenu .tx-loader {
+#txBar .tx-loader {
   margin: 12px auto;
-  width: 24px;
-  height: 24px;
+  width: 24px; height: 24px;
   border: 3px solid var(--border);
   border-top-color: var(--ruby);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-#txMenu .tx-list {
+#txBar .tx-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   max-height: 200px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-#txMenu .tx-list li {
+#txBar .tx-list li {
   background: var(--ruby-light);
   padding: 6px 8px;
   border-radius: 6px;
   word-break: break-all;
 }
-#txMenu .tx-list a {
+#txBar .tx-list a {
   color: var(--ruby);
   text-decoration: none;
   font-weight: 500;
 }
-#txMenu .tx-list time {
+#txBar .tx-list time {
   display: block;
   font-size: 12px;
   color: var(--subtle);
   margin-top: 4px;
 }
-#txMenu .tx-empty {
+#txBar .tx-empty {
   padding: 12px 0;
   text-align: center;
   color: var(--subtle);
 }
-
+  
