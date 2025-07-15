@@ -93,9 +93,9 @@ function updateLogos() {
   const inObj  = JSON.parse(document.getElementById("tokenInSelect").value);
   const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
   document.getElementById("inLogo").src         = inObj.logo;
-  document.getElementById("inSymbol").innerText  = inObj.symbol;
+  document.getElementById("inSymbol").innerText = inObj.symbol;
   document.getElementById("outLogo").src        = outObj.logo;
-  document.getElementById("outSymbol").innerText = outObj.symbol;
+  document.getElementById("outSymbol").innerText= outObj.symbol;
 }
 
 // === REVERSE TOKENS ===
@@ -103,7 +103,9 @@ function reverseTokens() {
   const inSel  = document.getElementById("tokenInSelect");
   const outSel = document.getElementById("tokenOutSelect");
   [inSel.selectedIndex, outSel.selectedIndex] = [outSel.selectedIndex, inSel.selectedIndex];
-  updateLogos(); updateBalances(); updateEstimate();
+  updateLogos();
+  updateBalances();
+  updateEstimate();
 }
 
 // === CONNECT WALLET ===
@@ -134,22 +136,22 @@ async function connect() {
       }
     }
 
-    provider        = new ethers.BrowserProvider(window.ethereum);
-    signer          = await provider.getSigner();
-    router          = new ethers.Contract(routerAddress, ABI, signer);
-    arenaRouter     = new ethers.Contract(arenaRouterAddress, ABI, provider);
-    userAddress     = await signer.getAddress();
-    currentAccount  = userAddress;
+    provider       = new ethers.BrowserProvider(window.ethereum);
+    signer         = await provider.getSigner();
+    router         = new ethers.Contract(routerAddress, ABI, signer);
+    arenaRouter    = new ethers.Contract(arenaRouterAddress, ABI, provider);
+    userAddress    = await signer.getAddress();
+    currentAccount = userAddress;
 
     document.querySelector(".connect-btn").style.display    = "none";
     document.getElementById("profileWrapper").style.display = "flex";
-    document.getElementById("walletAddress").innerText     =
-      userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+    document.getElementById("walletAddress").innerText     = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
     document.getElementById("swapBtn").disabled            = false;
     localStorage.setItem("connected","1");
 
     showToast("Wallet connected!", "success");
-    updateBalances(); updateEstimate();
+    updateBalances();
+    updateEstimate();
   } catch (err) {
     console.error(err);
     showToast("Connection failed", "error");
@@ -195,21 +197,15 @@ async function updateBalances() {
 
   async function getBal(t) {
     if (t.address === "AVAX") {
-      return parseFloat(
-        ethers.formatEther(await provider.getBalance(userAddress))
-      ).toFixed(4);
+      return parseFloat(ethers.formatEther(await provider.getBalance(userAddress))).toFixed(4);
     }
     const c = new ethers.Contract(t.address, ERC20_ABI, provider);
     const b = await c.balanceOf(userAddress);
-    return parseFloat(
-      ethers.formatUnits(b, tokenDecimals[t.address])
-    ).toFixed(4);
+    return parseFloat(ethers.formatUnits(b, tokenDecimals[t.address])).toFixed(4);
   }
 
-  document.getElementById("balanceIn").innerText  =
-    "Balance: " + await getBal(inObj);
-  document.getElementById("balanceOut").innerText =
-    "Balance: " + await getBal(outObj);
+  document.getElementById("balanceIn").innerText  = "Balance: " + await getBal(inObj);
+  document.getElementById("balanceOut").innerText = "Balance: " + await getBal(outObj);
 }
 
 // === UPDATE ESTIMATE ===
@@ -222,7 +218,7 @@ async function updateEstimate() {
   const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
   const path   = [
     inObj.address === "AVAX" ? WAVAX : inObj.address,
-    outObj	address === "AVAX" ? WAVAX : outObj.address
+    outObj.address === "AVAX" ? WAVAX : outObj.address
   ];
 
   try {
@@ -242,12 +238,12 @@ async function updateEstimate() {
 
 // === SWAP ===
 async function swap() {
-  const amt     = document.getElementById("tokenInAmount").value;
-  const inObj   = JSON.parse(document.getElementById("tokenInSelect").value);
-  const outObj  = JSON.parse(document.getElementById("tokenOutSelect").value);
-  const amountIn= ethers.parseUnits(amt, tokenDecimals[inObj.address]);
-  const deadline= Math.floor(Date.now()/1000) + 600;
-  const path    = [
+  const amt      = document.getElementById("tokenInAmount").value;
+  const inObj    = JSON.parse(document.getElementById("tokenInSelect").value);
+  const outObj   = JSON.parse(document.getElementById("tokenOutSelect").value);
+  const amountIn = ethers.parseUnits(amt, tokenDecimals[inObj.address]);
+  const deadline = Math.floor(Date.now()/1000) + 600;
+  const path     = [
     inObj.address === "AVAX" ? WAVAX : inObj.address,
     outObj.address === "AVAX" ? WAVAX : outObj.address
   ];
@@ -255,7 +251,7 @@ async function swap() {
   try {
     if (inObj.address === "AVAX") {
       await router.swapExactAVAXForTokensSupportingFeeOnTransferTokens(
-        0, path,	userAddress, deadline, { value: amountIn }
+        0, path, userAddress, deadline, { value: amountIn }
       );
     } else {
       const tC = new ethers.Contract(inObj.address, ERC20_ABI, signer);
@@ -264,11 +260,11 @@ async function swap() {
       }
       if (outObj.address === "AVAX") {
         await router.swapExactTokensForAVAXSupportingFeeOnTransferTokens(
-          amountIn, 0, path,	userAddress, deadline
+          amountIn, 0, path, userAddress, deadline
         );
       } else {
         await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-          amountIn, 0, path,	userAddress, deadline
+          amountIn, 0, path, userAddress, deadline
         );
       }
     }
@@ -286,7 +282,7 @@ function setPercentage(pct) {
   );
   if (isNaN(bal)) return;
   const inObj = JSON.parse(document.getElementById("tokenInSelect").value);
-  const val = inObj.address === "AVAX"
+  const val   = inObj.address === "AVAX"
     ? parseFloat((bal * pct/100).toFixed(4))
     : Math.floor(bal * pct/100);
 
@@ -340,7 +336,10 @@ function selectToken(token) {
       sel.selectedIndex = i;
     }
   });
-  closeModal(); updateLogos(); updateBalances(); updateEstimate();
+  closeModal();
+  updateLogos();
+  updateBalances();
+  updateEstimate();
 }
 function filterTokens() {
   const q = document.getElementById("tokenSearch").value.toLowerCase();
@@ -407,8 +406,11 @@ async function viewTransactions() {
       .filter(tx => tx.to.toLowerCase() === routerAddress.toLowerCase())
       .slice(0, 10);
 
-    if                                                                            (routerTxs.length) {
-      renderTxList(routerTxs.map(tx => ({ hash: tx.hash, timeStamp: Number(tx.timeStamp) })));
+    if (routerTxs.length) {
+      renderTxList(routerTxs.map(tx => ({
+        hash:      tx.hash,
+        timeStamp: Number(tx.timeStamp)
+      })));
       document.getElementById("txList").style.display = "block";
     } else {
       document.getElementById("txEmpty").style.display = "block";
