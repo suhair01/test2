@@ -330,10 +330,13 @@ function disconnect() {
 
 // === RECENT TRANSACTIONS PANEL & LOGIC ===
 async function viewTransactions() {
-  document.getElementById('txDropdown').style.display = 'flex'; // ✅ show inline
+  // Hide profile content, show transactions view
+  document.getElementById("profileContent").style.display = "none";
+  document.getElementById("txDropdown").style.display = "flex";
+
   document.getElementById('txLoader').style.display = 'block';
-  document.getElementById('txList').style.display = 'none';
-  document.getElementById('txEmpty').style.display = 'none';
+  document.getElementById('txList').style.display   = 'none';
+  document.getElementById('txEmpty').style.display  = 'none';
 
   try {
     const resp = await fetch(
@@ -354,7 +357,7 @@ async function viewTransactions() {
 
     if (routerTxs.length) {
       renderTxList(routerTxs.map(tx => ({
-        hash: tx.hash,
+        hash:      tx.hash,
         timeStamp: Number(tx.timeStamp)
       })));
       document.getElementById('txList').style.display = 'block';
@@ -369,7 +372,6 @@ async function viewTransactions() {
     document.getElementById('txLoader').style.display = 'none';
   }
 }
-
 
 function renderTxList(txs) {
   const ul = document.getElementById('txList');
@@ -391,7 +393,9 @@ function openTxBar() {
   document.getElementById('txDropdown').style.display = 'flex';
 }
 function closeTxBar() {
-  document.getElementById('txDropdown').style.display = 'none';
+  // Restore the profile view
+  document.getElementById("txDropdown").style.display = "none";
+  document.getElementById("profileContent").style.display = "flex";
 }
 
 // === TOAST ===
