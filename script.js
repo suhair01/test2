@@ -476,4 +476,3 @@ window.copyWallet        = copyWallet;
 window.disconnect        = disconnect;
 window.viewTransactions  = viewTransactions;
 window.closeTxBar        = closeTxBar;
-
