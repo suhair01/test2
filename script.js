@@ -328,36 +328,42 @@ function disconnect() {
 }
 
 // === RECENT TRANSACTIONS PANEL ===
-// === RECENT TXNS PANEL & LOGIC ===
 async function viewTransactions() {
-  // show overlay + panel
-  document.getElementById('txOverlay').style.display = 'block';
-  document.getElementById('txBar').classList.add('open');
-
-  // show loader, hide list+empty
+  openTxBar();
   document.getElementById('txLoader').style.display = 'block';
   document.getElementById('txList').style.display   = 'none';
   document.getElementById('txEmpty').style.display  = 'none';
 
   try {
-    // fetch on-chain history
-    const history = await rpc.getHistory(currentAccount);
-    const routerTxs = history
-      .filter(tx => tx.to && tx.to.toLowerCase() === routerAddress.toLowerCase())
-      .slice(-10).reverse();
+    // 1) Fetch last 10 txns to your router via Snowtrace REST (no API key needed)
+    const resp = await fetch(
+      `https://api.snowtrace.io/api` +
+      `?module=account` +
+      `&action=txlist` +
+      `&address=${currentAccount}` +
+      `&startblock=0` +
+      `&endblock=99999999` +
+      `&sort=desc`
+    );
+    const json = await resp.json();
+    if (json.status !== '1') throw new Error(json.message);
 
-    // load timestamps
-    const detailed = await Promise.all(routerTxs.map(async tx => {
-      const block = await rpc.getBlock(tx.blockNumber);
-      return { hash: tx.hash, timeStamp: block.timestamp };
-    }));
+    // 2) Filter to just your router interactions, take the first 10
+    const routerTxs = json.result
+      .filter(tx => tx.to.toLowerCase() === routerAddress.toLowerCase())
+      .slice(0, 10);
 
-    if (detailed.length) {
-      renderTxList(detailed);
+    // 3) Render or empty-state
+    if (routerTxs.length) {
+      renderTxList(routerTxs.map(tx => ({
+        hash: tx.hash,
+        timeStamp: Number(tx.timeStamp)
+      })));
       document.getElementById('txList').style.display = 'block';
     } else {
       document.getElementById('txEmpty').style.display = 'block';
     }
+
   } catch (err) {
     console.error(err);
     document.getElementById('txEmpty').innerText = 'Failed to load transactions.';
