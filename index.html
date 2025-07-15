@@ -14,6 +14,8 @@
       <img src="logo.jpg" alt="Avaly Logo" class="logo" />
       <span class="brand-name">Avaly</span>
     </div>
+
+    <!-- Connect / Profile -->
     <button class="connect-btn" onclick="connect()">Connect Wallet</button>
     <div class="profile-wrapper" id="profileWrapper" style="display:none;">
       <button class="profile-btn" onclick="toggleProfileMenu()">👤</button>
@@ -25,21 +27,17 @@
         <button onclick="viewTransactions()">📑 Transactions</button>
         <button onclick="switchToAvalanche()">🔁 Switch to Avalanche</button>
         <button onclick="disconnect()">❌ Disconnect</button>
+
+        <!-- Transactions dropdown -->
+        <div id="txMenu" class="tx-menu" style="display:none;">
+          <div id="txLoader" class="tx-loader"></div>
+          <ul id="txList" class="tx-list"></ul>
+          <div id="txEmpty" class="tx-empty">No transactions found.</div>
+        </div>
       </div>
     </div>
-    <button id="switchNetworkBtn" style="display:none;" onclick="switchToAvalanche()">Switch to Avalanche</button>
-  </div>
 
-  <!-- Transactions Overlay & Slide-Out Panel -->
-  <div id="txOverlay" class="tx-overlay" onclick="closeTxBar()"></div>
-  <div id="txBar" class="tx-bar">
-    <div class="tx-header">
-      <span>Recent Transactions</span>
-      <button class="tx-close" onclick="closeTxBar()">×</button>
-    </div>
-    <div id="txLoader" class="tx-loader"></div>
-    <ul id="txList" class="tx-list"></ul>
-    <div id="txEmpty" class="tx-empty">No transactions found.</div>
+    <button id="switchNetworkBtn" style="display:none;" onclick="switchToAvalanche()">Switch to Avalanche</button>
   </div>
 
   <!-- Swap UI -->
@@ -51,8 +49,7 @@
         <div class="slippage-popup" id="slippagePopup">
           <label>Slippage:</label>
           <div class="slippage-input-wrapper">
-            <input id="slippage" value="1" />
-            <span class="percent-label">%</span>
+            <input id="slippage" value="1" /><span class="percent-label">%</span>
           </div>
         </div>
       </div>
@@ -63,8 +60,7 @@
         <div class="token-select" onclick="openModal('in')">
           <div class="token-display">
             <img id="inLogo" src="avaxlogo.png" class="token-logo" />
-            <span id="inSymbol">AVAX</span>
-            <span class="dropdown-arrow">▼</span>
+            <span id="inSymbol">AVAX</span><span class="dropdown-arrow">▼</span>
           </div>
           <select id="tokenInSelect" style="display:none;"></select>
         </div>
@@ -85,8 +81,7 @@
         <div class="token-select" onclick="openModal('out')">
           <div class="token-display">
             <img id="outLogo" src="usdc.png" class="token-logo" />
-            <span id="outSymbol">USDC</span>
-            <span class="dropdown-arrow">▼</span>
+            <span id="outSymbol">USDC</span><span class="dropdown-arrow">▼</span>
           </div>
           <select id="tokenOutSelect" style="display:none;"></select>
         </div>
@@ -105,12 +100,7 @@
         <span class="modal-title">Select a token</span>
         <button class="close-modal" onclick="closeModal()">×</button>
       </div>
-      <input
-        type="text"
-        id="tokenSearch"
-        placeholder="Search name or address"
-        oninput="filterTokens()"
-      />
+      <input type="text" id="tokenSearch" placeholder="Search name or address" oninput="filterTokens()" />
       <div id="tokenList"></div>
     </div>
   </div>
@@ -125,17 +115,13 @@
           <a href="#"><img src="github.png" /></a>
         </div>
         <div class="footer-links">
-          <a href="#">Docs</a>
-          <a href="#">Support</a>
+          <a href="#">Docs</a><a href="#">Support</a>
         </div>
       </div>
       <div class="footer-bottom">
         <div class="footer-brand">
           <img src="logo.jpg" class="footer-logo" />
-          <div>
-            <strong>Avaly</strong><br />
-            <small>Seamless DEX on Avalanche</small>
-          </div>
+          <div><strong>Avaly</strong><br/><small>Seamless DEX on Avalanche</small></div>
         </div>
         <div class="legal">© Avaly 2025 · All rights reserved</div>
       </div>
