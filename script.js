@@ -49,18 +49,6 @@ function ensureElements() {
   });
 }
 
-// === UTILITY: Ensure CSS for tx-panel is loaded ===
-function ensureCss() {
-  const testEl = document.createElement('div');
-  testEl.className = 'tx-bar';
-  document.body.appendChild(testEl);
-  const style = getComputedStyle(testEl);
-  if (!style.transition.includes('right')) {
-    console.error("CSS for .tx-bar.open is not applied or loaded.");
-  }
-  document.body.removeChild(testEl);
-}
-
 // === UTILITY: Ensure user is connected ===
 function ensureLoggedIn() {
   if (!currentAccount) {
@@ -234,7 +222,7 @@ async function updateEstimate() {
   const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
   const path   = [
     inObj.address === "AVAX" ? WAVAX : inObj.address,
-    outObj.address === "AVAX" ? WAVAX : outObj.address
+    outObj	address === "AVAX" ? WAVAX : outObj.address
   ];
 
   try {
@@ -267,7 +255,7 @@ async function swap() {
   try {
     if (inObj.address === "AVAX") {
       await router.swapExactAVAXForTokensSupportingFeeOnTransferTokens(
-        0, path, userAddress, deadline, { value: amountIn }
+        0, path,	userAddress, deadline, { value: amountIn }
       );
     } else {
       const tC = new ethers.Contract(inObj.address, ERC20_ABI, signer);
@@ -276,11 +264,11 @@ async function swap() {
       }
       if (outObj.address === "AVAX") {
         await router.swapExactTokensForAVAXSupportingFeeOnTransferTokens(
-          amountIn, 0, path, userAddress, deadline
+          amountIn, 0, path,	userAddress, deadline
         );
       } else {
         await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-          amountIn, 0, path, userAddress, deadline
+          amountIn, 0, path,	userAddress, deadline
         );
       }
     }
@@ -395,7 +383,6 @@ function disconnect() {
 // === RECENT TRANSACTIONS PANEL & LOGIC ===
 async function viewTransactions() {
   ensureElements();
-  ensureCss();
   ensureLoggedIn();
 
   // close profile menu
@@ -420,11 +407,8 @@ async function viewTransactions() {
       .filter(tx => tx.to.toLowerCase() === routerAddress.toLowerCase())
       .slice(0, 10);
 
-    if (routerTxs.length) {
-      renderTxList(routerTxs.map(tx => ({
-        hash:      tx.hash,
-        timeStamp: Number(tx.timeStamp)
-      })));
+    if                                                                            (routerTxs.length) {
+      renderTxList(routerTxs.map(tx => ({ hash: tx.hash, timeStamp: Number(tx.timeStamp) })));
       document.getElementById("txList").style.display = "block";
     } else {
       document.getElementById("txEmpty").style.display = "block";
@@ -454,11 +438,11 @@ function renderTxList(txs) {
     ul.appendChild(li);
   });
 }
+
 function closeTxBar() {
   document.getElementById("txBar").classList.remove("open");
   document.getElementById("txOverlay").style.display = "none";
 }
-
 
 // === TOAST ===
 function showToast(msg, type = 'info') {
