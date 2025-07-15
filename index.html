@@ -27,16 +27,6 @@
         <button onclick="switchToAvalanche()">🔁 Switch to Avalanche</button>
         <button onclick="disconnect()">❌ Disconnect</button>
       </div>
-      <!-- Transactions dropdown -->
-      <div class="tx-menu" id="txMenu">
-        <div class="tx-header">
-          <span>Recent Transactions</span>
-          <button class="tx-close" onclick="toggleTxMenu()">×</button>
-        </div>
-        <div id="txLoader" class="tx-loader"></div>
-        <ul id="txList" class="tx-list"></ul>
-        <div id="txEmpty" class="tx-empty">No transactions found.</div>
-      </div>
     </div>
   </div>
 
@@ -120,46 +110,51 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <div class="footer-content">
-      <div class="footer-top">
-        <div class="socials">
-          <a href="#"><img src="discord.png" /></a>
-          <a href="#"><img src="twitter.png" /></a>
-          <a href="#"><img src="github.png" /></a>
-        </div>
-        <div class="footer-links">
-          <a href="#">Docs</a>
-          <a href="#">Support</a>
+    <div class="footer-inner">
+      <!-- Social icons -->
+      <div class="social-icons">
+        <a href="https://twitter.com/yourHandle" target="_blank">
+          <img src="./assets/twitter.svg" alt="Twitter">
+        </a>
+        <a href="https://t.me/yourHandle" target="_blank">
+          <img src="./assets/telegram.svg" alt="Telegram">
+        </a>
+        <a href="https://github.com/yourHandle" target="_blank">
+          <img src="./assets/github.svg" alt="GitHub">
+        </a>
+      </div>
+
+      <!-- Brand -->
+      <div class="brand">
+        <img src="./assets/logo.svg" alt="Avaly logo" class="footer-logo">
+        <div class="brand-text">
+          <strong>Avaly</strong><br />
+          <small>Seamless DEX on Avalanche</small>
         </div>
       </div>
-      <div class="footer-bottom">
-        <div class="footer-brand">
-          <img src="logo.jpg" class="footer-logo" />
-          <div>
-            <strong>Avaly</strong><br />
-            <small>Seamless DEX on Avalanche</small>
-          </div>
-        </div>
-        <div class="legal">© Avaly 2025 · All rights reserved</div>
+
+      <!-- Links -->
+      <div class="footer-links">
+        <a href="./docs.html">Docs</a>
+        <a href="./support.html">Support</a>
       </div>
     </div>
+    <p class="legal">© Avaly 2025 · All rights reserved</p>
   </footer>
-<!-- Transactions overlay + slide-in panel -->
-<div id="txOverlay" class="tx-overlay" style="display:none;"
-     onclick="closeTxBar()"></div>
-<div id="txBar" class="tx-menu">
-  <div class="tx-header">
-    <span>Recent Transactions</span>
-    <button class="tx-close" onclick="closeTxBar()">×</button>
+
+  <!-- Transactions overlay + slide-in panel -->
+  <div id="txOverlay" class="tx-overlay" onclick="closeTxBar()"></div>
+  <div id="txBar" class="tx-menu">
+    <div class="tx-header">
+      <span>Recent Transactions</span>
+      <button class="tx-close" onclick="closeTxBar()">×</button>
+    </div>
+    <div id="txLoader" class="tx-loader"></div>
+    <ul id="txList" class="tx-list"></ul>
+    <div id="txEmpty" class="tx-empty">No transactions found.</div>
   </div>
-  <div id="txLoader" class="tx-loader"></div>
-  <ul id="txList" class="tx-list"></ul>
-  <div id="txEmpty" class="tx-empty">No transactions found.</div>
-</div>
 
   <div id="toastContainer"></div>
   <script src="script.js"></script>
 </body>
 </html>
-
-
