@@ -1,4 +1,4 @@
-
+// === CONFIG ===
 const routerAddress = "0x06d8b6810edf37fc303f32f30ac149220c665c27"; // Your fee router
 const arenaRouterAddress = "0xF56D524D651B90E4B84dc2FffD83079698b9066E"; // ArenaRouter for estimation
 const WAVAX = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7";
@@ -25,7 +25,7 @@ const ERC20_ABI = [
   "function decimals() view returns (uint8)"
 ];
 
-let provider, signer, router, arenaRouter, userAddress;
+let provider, signer, router, arenaRouter, userAddress, currentAccount = null;
 const tokenDecimals = {};
 
 const tokens = [
@@ -36,13 +36,16 @@ const tokens = [
   { symbol: "JOE", address: "0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd", logo: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/avalanche/assets/0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd/logo.png" }
 ];
 
+// === POPULATE TOKENS ===
 async function populateTokens() {
   provider = new ethers.BrowserProvider(window.ethereum);
   router = new ethers.Contract(routerAddress, ABI, provider);
   arenaRouter = new ethers.Contract(arenaRouterAddress, ABI, provider);
+
   const inSel = document.getElementById("tokenInSelect");
   const outSel = document.getElementById("tokenOutSelect");
-  inSel.innerHTML = ""; outSel.innerHTML = "";
+  inSel.innerHTML = "";
+  outSel.innerHTML = "";
 
   for (const t of tokens) {
     const opt = document.createElement("option");
@@ -52,8 +55,8 @@ async function populateTokens() {
     outSel.appendChild(opt.cloneNode(true));
 
     if (t.address !== "AVAX") {
-      const contract = new ethers.Contract(t.address, ERC20_ABI, provider);
-      tokenDecimals[t.address] = await contract.decimals();
+      const c = new ethers.Contract(t.address, ERC20_ABI, provider);
+      tokenDecimals[t.address] = await c.decimals();
     } else {
       tokenDecimals[t.address] = 18;
     }
@@ -64,105 +67,90 @@ async function populateTokens() {
   updateLogos();
 }
 
+// === UPDATE LOGOS ===
 function updateLogos() {
-  const tokenIn = JSON.parse(document.getElementById("tokenInSelect").value);
-  const tokenOut = JSON.parse(document.getElementById("tokenOutSelect").value);
-
-  document.getElementById("inLogo").src = tokenIn.logo;
-  document.getElementById("inSymbol").innerText = tokenIn.symbol;
-
-  document.getElementById("outLogo").src = tokenOut.logo;
-  document.getElementById("outSymbol").innerText = tokenOut.symbol;
+  const inObj = JSON.parse(document.getElementById("tokenInSelect").value);
+  const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
+  document.getElementById("inLogo").src = inObj.logo;
+  document.getElementById("inSymbol").innerText = inObj.symbol;
+  document.getElementById("outLogo").src = outObj.logo;
+  document.getElementById("outSymbol").innerText = outObj.symbol;
 }
 
-
+// === REVERSE TOKENS ===
 function reverseTokens() {
   const inSel = document.getElementById("tokenInSelect");
   const outSel = document.getElementById("tokenOutSelect");
   const tmp = inSel.selectedIndex;
   inSel.selectedIndex = outSel.selectedIndex;
   outSel.selectedIndex = tmp;
-  updateLogos(); updateBalances(); updateEstimate();
+  updateLogos();
+  updateBalances();
+  updateEstimate();
 }
 
+// === WALLET CONNECT (UNIFIED) ===
 async function connect() {
-  if (!window.ethereum) return alert("Please install MetaMask");
-
+  if (!window.ethereum) {
+    showToast("Please install MetaMask", "error");
+    return;
+  }
   try {
-    // Request wallet connection
-    await window.ethereum.request({ method: "eth_requestAccounts" });
-
-    // Check chain ID
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+    const chainId = await ethereum.request({ method: "eth_chainId" });
 
     if (chainId !== AVALANCHE_PARAMS.chainId) {
-      // Not on Avalanche → try to switch
       try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: AVALANCHE_PARAMS.chainId }],
-        });
+        await ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: AVALANCHE_PARAMS.chainId }] });
       } catch (err) {
-        // If Avalanche not added yet
         if (err.code === 4902) {
-          try {
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [AVALANCHE_PARAMS],
-            });
-          } catch (addErr) {
-            console.error("Add Avalanche failed:", addErr);
-            showToast("Failed to add Avalanche", "error");
-            return;
-          }
+          await ethereum.request({ method: "wallet_addEthereumChain", params: [AVALANCHE_PARAMS] });
         } else {
-          console.error("Switch chain failed:", err);
           showToast("Please switch to Avalanche", "error");
           return;
         }
       }
     }
 
-    // Continue connecting wallet
     provider = new ethers.BrowserProvider(window.ethereum);
     signer = await provider.getSigner();
     router = new ethers.Contract(routerAddress, ABI, signer);
     arenaRouter = new ethers.Contract(arenaRouterAddress, ABI, provider);
     userAddress = await signer.getAddress();
+    currentAccount = userAddress;
 
-    // Show address in UI
-    document.querySelector(".connect-btn").innerHTML = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)} <span onclick="copyAddress(event)">📋</span>`;
+    document.querySelector(".connect-btn").style.display = "none";
+    document.getElementById("profileWrapper").style.display = "flex";
+    document.getElementById("walletAddress").innerText =
+      userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
     document.getElementById("swapBtn").disabled = false;
+
+    localStorage.setItem("connected", "1");
     showToast("Wallet connected!", "success");
 
-    // Update balances and estimates
     updateBalances();
     updateEstimate();
   } catch (err) {
-    console.error("Connection failed:", err);
-    showToast("Wallet connection failed!", "error");
+    console.error(err);
+    showToast("Connection failed", "error");
   }
 }
 
+// === SWITCH NETWORK ===
 async function switchToAvalanche() {
   try {
-    await window.ethereum.request({
+    await ethereum.request({
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: AVALANCHE_PARAMS.chainId }]
     });
     location.reload();
   } catch (err) {
     if (err.code === 4902) {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [AVALANCHE_PARAMS]
-        });
-        location.reload();
-      } catch (addError) {
-        showToast("Failed to add Avalanche", "error");
-        console.error(addError);
-      }
+      await ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [AVALANCHE_PARAMS]
+      });
+      location.reload();
     } else {
       showToast("Switch network failed!", "error");
       console.error(err);
@@ -170,6 +158,7 @@ async function switchToAvalanche() {
   }
 }
 
+// === COPY INLINE ADDRESS ===
 function copyAddress(e) {
   e.stopPropagation();
   navigator.clipboard.writeText(userAddress);
@@ -179,182 +168,112 @@ function copyAddress(e) {
   setTimeout(() => (icon.innerText = "📋"), 1000);
 }
 
+// === GET & UPDATE BALANCES ===
 async function updateBalances() {
   if (!userAddress) return;
-  const tokenIn = JSON.parse(document.getElementById("tokenInSelect").value);
-  const tokenOut = JSON.parse(document.getElementById("tokenOutSelect").value);
+  const inObj = JSON.parse(document.getElementById("tokenInSelect").value);
+  const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
 
-  const getBal = async (t) => {
+  async function getBal(t) {
     if (t.address === "AVAX") {
       return parseFloat(ethers.formatEther(await provider.getBalance(userAddress))).toFixed(4);
     }
-    const contract = new ethers.Contract(t.address, ERC20_ABI, provider);
-    const bal = await contract.balanceOf(userAddress);
-    const dec = tokenDecimals[t.address] || 18;
-    return parseFloat(ethers.formatUnits(bal, dec)).toFixed(4);
-  };
+    const c = new ethers.Contract(t.address, ERC20_ABI, provider);
+    const b = await c.balanceOf(userAddress);
+    return parseFloat(ethers.formatUnits(b, tokenDecimals[t.address])).toFixed(4);
+  }
 
-  document.getElementById("balanceIn").innerText = "Balance: " + await getBal(tokenIn);
-  document.getElementById("balanceOut").innerText = "Balance: " + await getBal(tokenOut);
+  document.getElementById("balanceIn").innerText = "Balance: " + await getBal(inObj);
+  document.getElementById("balanceOut").innerText = "Balance: " + await getBal(outObj);
 }
 
+// === UPDATE ESTIMATE ===
 async function updateEstimate() {
   if (!provider) return;
   const amt = document.getElementById("tokenInAmount").value;
   if (!amt || isNaN(amt)) return;
 
-  const tokenIn = JSON.parse(document.getElementById("tokenInSelect").value);
-  const tokenOut = JSON.parse(document.getElementById("tokenOutSelect").value);
-
-  const decIn = tokenDecimals[tokenIn.address] || 18;
-  const decOut = tokenDecimals[tokenOut.address] || 18;
+  const inObj = JSON.parse(document.getElementById("tokenInSelect").value);
+  const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
+  const decIn = tokenDecimals[inObj.address];
+  const decOut = tokenDecimals[outObj.address];
   const path = [
-    tokenIn.address === "AVAX" ? WAVAX : tokenIn.address,
-    tokenOut.address === "AVAX" ? WAVAX : tokenOut.address
+    inObj.address === "AVAX" ? WAVAX : inObj.address,
+    outObj.address === "AVAX" ? WAVAX : outObj.address
   ];
 
   try {
-    const result = await arenaRouter.getAmountsOut(ethers.parseUnits(amt, decIn), path); // estimation only
+    const result = await arenaRouter.getAmountsOut(ethers.parseUnits(amt, decIn), path);
     const est = ethers.formatUnits(result[1], decOut);
-  document.getElementById("tokenOutAmount").value =
-  tokenOut.address === "AVAX"
-    ? parseFloat(est).toFixed(4)
-    : Math.floor(parseFloat(est));
-
-  } catch (err) {
-    console.error("Estimation failed:", err);
+    document.getElementById("tokenOutAmount").value =
+      outObj.address === "AVAX" ? parseFloat(est).toFixed(4) : Math.floor(parseFloat(est));
+  } catch {
     document.getElementById("tokenOutAmount").value = "";
   }
 }
 
+// === SWAP ===
 async function swap() {
   const amt = document.getElementById("tokenInAmount").value;
   const slippage = parseFloat(document.getElementById("slippage").value);
-  const tokenIn = JSON.parse(document.getElementById("tokenInSelect").value);
-  const tokenOut = JSON.parse(document.getElementById("tokenOutSelect").value);
-  const decIn = tokenDecimals[tokenIn.address] || 18;
+  const inObj = JSON.parse(document.getElementById("tokenInSelect").value);
+  const outObj = JSON.parse(document.getElementById("tokenOutSelect").value);
+  const decIn = tokenDecimals[inObj.address];
   const amountIn = ethers.parseUnits(amt, decIn);
-  const to = userAddress;
   const deadline = Math.floor(Date.now() / 1000) + 600;
   const path = [
-    tokenIn.address === "AVAX" ? WAVAX : tokenIn.address,
-    tokenOut.address === "AVAX" ? WAVAX : tokenOut.address
+    inObj.address === "AVAX" ? WAVAX : inObj.address,
+    outObj.address === "AVAX" ? WAVAX : outObj.address
   ];
 
   try {
-    if (tokenIn.address === "AVAX") {
-      const tx = await router.swapExactAVAXForTokensSupportingFeeOnTransferTokens(0, path, to, deadline, { value: amountIn });
-      showToast("Swap submitted!", "success");
+    if (inObj.address === "AVAX") {
+      await router.swapExactAVAXForTokensSupportingFeeOnTransferTokens(0, path, userAddress, deadline, { value: amountIn });
     } else {
-      const tokenContract = new ethers.Contract(tokenIn.address, ERC20_ABI, signer);
-      const allowance = await tokenContract.allowance(to, routerAddress);
-      if (allowance < amountIn) await tokenContract.approve(routerAddress, ethers.MaxUint256);
-      const tx = tokenOut.address === "AVAX"
-        ? await router.swapExactTokensForAVAXSupportingFeeOnTransferTokens(amountIn, 0, path, to, deadline)
-        : await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn, 0, path, to, deadline);
-      showToast("Swap submitted!", "success");
+      const tokenC = new ethers.Contract(inObj.address, ERC20_ABI, signer);
+      const allowance = await tokenC.allowance(userAddress, routerAddress);
+      if (allowance < amountIn) await tokenC.approve(routerAddress, ethers.MaxUint256);
+      if (outObj.address === "AVAX") {
+        await router.swapExactTokensForAVAXSupportingFeeOnTransferTokens(amountIn, 0, path, userAddress, deadline);
+      } else {
+        await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn, 0, path, userAddress, deadline);
+      }
     }
+    showToast("Swap submitted!", "success");
   } catch (err) {
     console.error(err);
     showToast("Swap failed!", "error");
   }
 }
 
+// === SET PERCENTAGE INPUT ===
 function setPercentage(pct) {
-  const balText = document.getElementById("balanceIn").innerText.split(":")[1]?.trim();
-  const bal = parseFloat(balText);
+  const bal = parseFloat(document.getElementById("balanceIn").innerText.split(":")[1]);
   if (isNaN(bal)) return;
-  const tokenIn = JSON.parse(document.getElementById("tokenInSelect").value);
+  const inObj = JSON.parse(document.getElementById("tokenInSelect").value);
   const val = (bal * pct / 100);
-
   document.getElementById("tokenInAmount").value =
-    tokenIn.address === "AVAX"
-      ? parseFloat(val).toFixed(4)
-      : Math.floor(parseFloat(val));
-
+    inObj.address === "AVAX" ? parseFloat(val).toFixed(4) : Math.floor(val);
   updateEstimate();
 }
 
-
+// === SLIPPAGE TOGGLE ===
 function toggleSlippage() {
-  const popup = document.getElementById("slippagePopup");
-  popup.style.display = popup.style.display === "block" ? "none" : "block";
+  const pop = document.getElementById("slippagePopup");
+  pop.style.display = pop.style.display === "block" ? "none" : "block";
 }
 
-window.addEventListener("click", function (e) {
-  const popup = document.getElementById("slippagePopup");
-  const btn = document.querySelector(".settings-btn");
-  if (!popup.contains(e.target) && !btn.contains(e.target)) {
-    popup.style.display = "none";
-  }
-});
-
-window.addEventListener("DOMContentLoaded", populateTokens);
-document.getElementById("tokenInAmount").addEventListener("input", function (e) {
-  const tokenIn = JSON.parse(document.getElementById("tokenInSelect").value);
-  let val = e.target.value;
-
-  // Allow only numbers and a single dot
-  val = val.replace(/[^0-9.]/g, "");
-  const parts = val.split(".");
-  if (parts.length > 2) val = parts[0] + "." + parts[1];
-
-  if (tokenIn.address === "AVAX") {
-    // Allow up to 4 decimals
-    if (parts[1] && parts[1].length > 4) {
-      parts[1] = parts[1].substring(0, 4);
-      val = parts.join(".");
-    }
-    e.target.value = val;
-  } else {
-    // For non-AVAX tokens: only allow integers
-    const intVal = parts[0];
-    if (val.includes(".") && parts[1] !== "0") {
-      showToast(`Decimals removed: rounded down to ${intVal}`, "info");
-    }
-    e.target.value = intVal;
-  }
-
-  updateEstimate();
-});
-
-document.getElementById("tokenInSelect").addEventListener("change", () => { updateLogos(); updateBalances(); updateEstimate(); });
-document.getElementById("tokenOutSelect").addEventListener("change", () => { updateLogos(); updateBalances(); updateEstimate(); });
-
-window.connect = connect;
-window.reverseTokens = reverseTokens;
-window.swap = swap;
-window.setPercentage = setPercentage;
-window.toggleSlippage = toggleSlippage;
-window.switchToAvalanche = switchToAvalanche;
-
-
-function showToast(msg, type = 'info') {
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerText = msg;
-
-  const container = document.getElementById('toastContainer');
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.remove();
-  }, 3500);
-}
-
+// === MODAL & TOKEN LIST ===
 let selectedField = null;
-
 function openModal(field) {
-  selectedField = field; // 'in' or 'out'
+  selectedField = field;
   document.getElementById("tokenModal").style.display = "flex";
   renderTokenList();
 }
-
 function closeModal() {
   document.getElementById("tokenModal").style.display = "none";
   document.getElementById("tokenSearch").value = "";
 }
-
 function renderTokenList() {
   const list = document.getElementById("tokenList");
   list.innerHTML = "";
@@ -362,7 +281,6 @@ function renderTokenList() {
     const item = document.createElement("div");
     item.className = "token-item";
     item.onclick = () => selectToken(t);
-
     item.innerHTML = `
       <div class="token-left">
         <img src="${t.logo}" class="token-logo" />
@@ -376,52 +294,42 @@ function renderTokenList() {
     list.appendChild(item);
   });
 }
-
 function selectToken(token) {
-  const selectEl = selectedField === "in" ? document.getElementById("tokenInSelect") : document.getElementById("tokenOutSelect");
-  [...selectEl.options].forEach((opt, i) => {
-    if (JSON.parse(opt.value).address === token.address) {
-      selectEl.selectedIndex = i;
-    }
+  const sel = selectedField === "in" ? document.getElementById("tokenInSelect") : document.getElementById("tokenOutSelect");
+  [...sel.options].forEach((opt, i) => {
+    if (JSON.parse(opt.value).address === token.address) sel.selectedIndex = i;
   });
   closeModal();
   updateLogos();
   updateBalances();
   updateEstimate();
 }
-
 function filterTokens() {
-  const query = document.getElementById("tokenSearch").value.toLowerCase();
-  const items = document.querySelectorAll("#tokenList .token-item");
-  tokens.forEach((t, i) => {
-    const visible = t.symbol.toLowerCase().includes(query) || t.address.toLowerCase().includes(query);
-    items[i].style.display = visible ? "flex" : "none";
+  const q = document.getElementById("tokenSearch").value.toLowerCase();
+  document.querySelectorAll("#tokenList .token-item").forEach((item, i) => {
+    const t = tokens[i];
+    item.style.display = (t.symbol.toLowerCase().includes(q) || t.address.toLowerCase().includes(q)) ? "flex" : "none";
   });
 }
-
 function shorten(addr) {
   return addr === "AVAX" ? "AVAX" : addr.slice(0, 6) + "..." + addr.slice(-4);
 }
-
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text);
   showToast("Copied to clipboard", "info");
 }
 
-let currentAccount = null;
-
+// === PROFILE DROPDOWN ===
 function toggleProfileMenu() {
   const menu = document.getElementById("profileMenu");
   menu.style.display = menu.style.display === "flex" ? "none" : "flex";
 }
-
 function copyWallet() {
   if (currentAccount) {
     navigator.clipboard.writeText(currentAccount);
     showToast("Copied wallet address!", "success");
   }
 }
-
 function disconnect() {
   localStorage.removeItem("connected");
   currentAccount = null;
@@ -429,39 +337,61 @@ function disconnect() {
   document.querySelector(".connect-btn").style.display = "inline-block";
   showToast("Wallet disconnected", "info");
 }
-
 function viewTransactions() {
   if (!currentAccount) return;
   window.open(`https://snowtrace.io/address/${currentAccount}`, "_blank");
 }
 
-async function connect() {
-  if (typeof window.ethereum !== "undefined") {
-    try {
-      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
-      currentAccount = ethers.getAddress(accounts[0]);
-      document.getElementById("walletAddress").innerText =
-        currentAccount.slice(0, 6) + "..." + currentAccount.slice(-4);
-
-      document.querySelector(".connect-btn").style.display = "none";
-      document.getElementById("profileWrapper").style.display = "flex";
-      localStorage.setItem("connected", "1");
-    } catch (err) {
-      showToast("Connection failed", "error");
-    }
-  } else {
-    showToast("MetaMask not detected", "error");
-  }
+// === TOAST ===
+function showToast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerText = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
 }
 
-window.addEventListener("click", function (e) {
+// === EVENT LISTENERS ===
+window.addEventListener("DOMContentLoaded", async () => {
+  await populateTokens();
+  if (localStorage.getItem("connected")) await connect();
+});
+
+window.addEventListener("click", (e) => {
   const menu = document.getElementById("profileMenu");
   if (!document.getElementById("profileWrapper").contains(e.target)) {
     menu.style.display = "none";
   }
 });
-window.addEventListener("DOMContentLoaded", async () => {
-  if (localStorage.getItem("connected")) {
-    await connect();
+
+document.getElementById("tokenInAmount").addEventListener("input", (e) => {
+  let v = e.target.value.replace(/[^0-9.]/g, '');
+  const parts = v.split('.');
+  if (parts.length > 2) v = parts[0] + '.' + parts[1];
+  const inObj = JSON.parse(document.getElementById("tokenInSelect").value);
+  if (inObj.address === "AVAX") {
+    if (parts[1] && parts[1].length > 4) parts[1] = parts[1].substring(0,4);
+    e.target.value = parts.join('.');
+  } else {
+    e.target.value = parts[0];
   }
+  updateEstimate();
 });
+
+document.getElementById("tokenInSelect").addEventListener("change", () => { updateLogos(); updateBalances(); updateEstimate(); });
+document.getElementById("tokenOutSelect").addEventListener("change", () => { updateLogos(); updateBalances(); updateEstimate(); });
+
+window.connect = connect;
+window.reverseTokens = reverseTokens;
+window.swap = swap;
+window.setPercentage = setPercentage;
+window.toggleSlippage = toggleSlippage;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.copyToClipboard = copyToClipboard;
+window.switchToAvalanche = switchToAvalanche;
+window.copyAddress = copyAddress;
+window.toggleProfileMenu = toggleProfileMenu;
+window.copyWallet = copyWallet;
+window.disconnect = disconnect;
+window.viewTransactions = viewTransactions;
