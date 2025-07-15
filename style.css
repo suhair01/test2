@@ -1,12 +1,17 @@
 :root {
   --ruby: #ff0000;
+  --ruby-light: rgba(255, 0, 0, 0.1);
   --bg: #ffdada;
   --card: #ffffff;
+  --white: #ffffff;
   --text: #000000;
   --subtle: #555555;
+  --border: #e0e0e0;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
@@ -19,10 +24,11 @@ body {
 }
 
 /* Header and Footer */
-.header-bar, .footer {
+.header-bar,
+.footer {
   width: 90%;
   max-width: 1024px;
-  background: #fff;
+  background: var(--white);
   border-radius: 24px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
   margin: 24px auto 20px auto;
@@ -38,7 +44,8 @@ body {
   align-items: center;
   gap: 10px;
 }
-.logo, .footer-logo {
+.logo,
+.footer-logo {
   height: 32px;
   border-radius: 6px;
 }
@@ -111,12 +118,10 @@ body {
   line-height: 1;
   transition: transform 0.2s ease, color 0.2s ease;
 }
-
 .reload-btn:hover {
   transform: rotate(90deg);
   color: #000;
 }
-
 
 /* Slippage Popup */
 .settings-wrapper {
@@ -126,7 +131,7 @@ body {
   position: absolute;
   top: 40px;
   right: 0;
-  background: white;
+  background: var(--white);
   border: 1px solid #ccc;
   border-radius: 10px;
   padding: 8px 12px;
@@ -166,7 +171,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: white;
+  background: var(--white);
   padding: 6px 10px;
   border: 1px solid #ccc;
   border-radius: 12px;
@@ -182,7 +187,7 @@ body {
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid #ccc;
-  background-color: white;
+  background-color: var(--white);
 }
 .dropdown-arrow {
   font-size: 12px;
@@ -203,6 +208,10 @@ body {
   align-items: center;
   margin-bottom: 6px;
 }
+.balance {
+  font-size: 13px;
+  color: var(--subtle);
+}
 .amount-input {
   width: 100%;
   padding: 10px;
@@ -219,7 +228,7 @@ body {
   flex: 1;
   padding: 6px;
   font-size: 12px;
-  background: #fff;
+  background: var(--white);
   border: 1px solid var(--ruby);
   border-radius: 8px;
   cursor: pointer;
@@ -269,34 +278,29 @@ body {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* soft dark overlay */
+  background-color: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
 }
-
 .modal-content {
-  background: #ffffff;
-  color: #000;
+  background: var(--white);
+  color: var(--text);
   width: 90%;
   max-width: 400px;
   border-radius: 20px;
   padding: 20px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
-
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 14px;
 }
-
 .modal-title {
   font-size: 18px;
   font-weight: bold;
-  color: var(--text);
 }
-
 .close-modal {
   background: transparent;
   border: none;
@@ -304,7 +308,6 @@ body {
   color: var(--subtle);
   cursor: pointer;
 }
-
 #tokenSearch {
   width: 100%;
   padding: 10px 12px;
@@ -314,6 +317,7 @@ body {
   font-size: 14px;
 }
 
+/* Token List Items */
 .token-item {
   display: flex;
   align-items: center;
@@ -325,43 +329,28 @@ body {
   cursor: pointer;
   transition: background 0.2s ease;
 }
-
 .token-item:hover {
   background: #eee;
 }
-
 .token-left {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
-.token-logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid #ddd;
-  background: white;
-}
-
 .token-symbol {
   font-weight: bold;
   font-size: 15px;
 }
-
 .token-address {
   font-size: 12px;
   color: #888;
 }
-
 .copy-btn {
   font-size: 14px;
   color: var(--ruby);
   cursor: pointer;
   padding: 4px;
 }
-
 
 /* Footer */
 .footer-content {
@@ -375,6 +364,10 @@ body {
   justify-content: space-between;
   flex-wrap: wrap;
   align-items: center;
+}
+.socials img {
+  height: 24px;
+  margin-right: 12px;
 }
 .footer-links {
   display: flex;
@@ -428,18 +421,19 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 .toast.success { background: #28a745; }
-.toast.error { background: #dc3545; }
-.toast.info { background: #444; }
+.toast.error   { background: #dc3545; }
+.toast.info    { background: #444; }
 @keyframes fadeInUp {
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeOut {
   to { opacity: 0; transform: translateY(20px); }
 }
+
+/* Profile Dropdown */
 .profile-wrapper {
   position: relative;
 }
-
 .profile-btn {
   background: var(--card);
   border: 1px solid var(--border);
@@ -448,7 +442,6 @@ body {
   font-size: 18px;
   cursor: pointer;
 }
-
 .profile-menu {
   position: absolute;
   top: 45px;
@@ -464,7 +457,6 @@ body {
   flex-direction: column;
   gap: 8px;
 }
-
 .profile-menu button {
   background: none;
   border: none;
@@ -474,12 +466,10 @@ body {
   cursor: pointer;
   font-size: 14px;
 }
-
 .profile-menu button:hover {
   background: var(--ruby-light);
   color: var(--text);
 }
-
 .wallet-info {
   display: flex;
   justify-content: space-between;
@@ -490,22 +480,15 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-.copy-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-/* overlay behind tx panel */
+/* Transactions Overlay & Panel */
 .tx-overlay {
   display: none;
-  position: fixed; top: 0; left: 0;
+  position: fixed;
+  top: 0; left: 0;
   width: 100%; height: 100%;
   background: rgba(0,0,0,0.3);
   z-index: 99;
 }
-
-/* slide-out panel */
 .tx-bar {
   position: fixed;
   top: 0; right: -360px;
@@ -520,8 +503,6 @@ body {
 .tx-bar.open {
   right: 0;
 }
-
-/* header */
 .tx-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 16px; border-bottom: 1px solid var(--border);
@@ -530,8 +511,6 @@ body {
 .tx-close {
   background: none; border: none; font-size: 22px; cursor: pointer;
 }
-
-/* loader */
 .tx-loader {
   display: none;
   margin: 24px auto;
@@ -544,11 +523,8 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-
-/* tx list */
 .tx-list {
-  flex: 1;
-  overflow-y: auto;
+  flex: 1; overflow-y: auto;
   list-style: none; margin: 0; padding: 8px 16px;
 }
 .tx-list li {
@@ -570,8 +546,6 @@ body {
   color: #555;
   margin-top: 4px;
 }
-
-/* empty state */
 .tx-empty {
   display: none;
   text-align: center;
