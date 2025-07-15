@@ -330,13 +330,22 @@ function disconnect() {
 
 // === RECENT TRANSACTIONS PANEL & LOGIC ===
 async function viewTransactions() {
-  // Hide profile content, show transactions view
+  // Show txDropdown, hide profile content
   document.getElementById("profileContent").style.display = "none";
   document.getElementById("txDropdown").style.display = "flex";
 
+  // Get selected tokens
+  const inToken  = JSON.parse(document.getElementById("tokenInSelect").value);
+  const outToken = JSON.parse(document.getElementById("tokenOutSelect").value);
+  const txTitle  = `${inToken.symbol} → ${outToken.symbol}`;
+
+  // Set dynamic title
+  document.getElementById("txTitle").innerText = `Transactions (${txTitle})`;
+
+  // Show loader
   document.getElementById('txLoader').style.display = 'block';
-  document.getElementById('txList').style.display   = 'none';
-  document.getElementById('txEmpty').style.display  = 'none';
+  document.getElementById('txList').style.display = 'none';
+  document.getElementById('txEmpty').style.display = 'none';
 
   try {
     const resp = await fetch(
@@ -372,6 +381,7 @@ async function viewTransactions() {
     document.getElementById('txLoader').style.display = 'none';
   }
 }
+
 
 function renderTxList(txs) {
   const ul = document.getElementById('txList');
