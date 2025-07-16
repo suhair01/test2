@@ -20,7 +20,7 @@ const rpc = new ethers.JsonRpcProvider(AVALANCHE_PARAMS.rpcUrls[0]);
 const ABI = [
   "function getAmountsOut(uint256,address[]) view returns (uint256[])",
   "function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)",
-  "function swapExactAVAXForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256) payable",
+  "function swapExactAVAXForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)",
   "function swapExactTokensForAVAXSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"
 ];
 
@@ -386,19 +386,17 @@ async function renderTxList(txs) {
   const ul = document.getElementById('txList');
   ul.innerHTML = '';
 
-  const iface = new ethers.Interface(ABI);
+  const fragments = ABI.map(sig => ethers.Fragment.from(sig));
+  const iface = new ethers.Interface(fragments);
   const knownSelectors = {};
 
   // Build safe selector map
-  ABI.forEach(sig => {
+  fragments.forEach(fragment => {
     try {
-      const fragment = ethers.utils.FunctionFragment.from(sig);
-      if (fragment && fragment.name) {
-        const selector = ethers.utils.Interface.getFunctionSelector(fragment);
-        knownSelectors[selector] = fragment.name;
-      }
+      const selector = iface.getFunctionSelector(fragment.name);
+      knownSelectors[selector] = fragment.name;
     } catch (err) {
-      console.warn("Invalid ABI skipped:", sig);
+      console.warn("Invalid fragment skipped:", fragment.name);
     }
   });
 
@@ -503,8 +501,7 @@ async function renderTxList(txs) {
       const amt = document.createElement('div');
       amt.style.fontSize = "13px";
       amt.style.color = "#666";
-    amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
-
+      amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
       li.append(wrapper);
       wrapper.append(title, amt, tm);
     } else {
