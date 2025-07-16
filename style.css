@@ -567,3 +567,7 @@ body {
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border);
 }
+.tx-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
