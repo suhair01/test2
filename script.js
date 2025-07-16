@@ -387,21 +387,27 @@ async function renderTxList(txs) {
   const iface = new ethers.Interface(ABI);
   const knownSelectors = {};
 
-  for (const fragment of ABI) {
-    const sig = fragment.split('(')[0];
-    const selector = iface.getFunction(sig).selector;
-    knownSelectors[selector] = sig;
-  }
+  // Build map of selector → function name safely
+  ABI.forEach(sig => {
+    try {
+      const fragment = ethers.FunctionFragment.from(sig);
+      const selector = ethers.Interface.getFunctionSelector(fragment);
+      knownSelectors[selector] = fragment.name;
+    } catch (err) {
+      console.warn("Skipped ABI entry:", sig);
+    }
+  });
 
   for (const tx of txs) {
     const li = document.createElement('li');
-    const selector = tx.input.slice(0, 10);
-    const fnName = knownSelectors[selector];
     let label = 'Unknown → Unknown';
     let fromToken = null, toToken = null;
     let amountIn = null, amountOut = null;
 
     try {
+      const selector = tx.input.slice(0, 10);
+      const fnName = knownSelectors[selector];
+
       if (fnName) {
         const args = iface.decodeFunctionData(fnName, tx.input);
         const path = args.path;
@@ -421,15 +427,17 @@ async function renderTxList(txs) {
 
           const fromSym = fromToken?.symbol || 'Unknown';
           const toSym = toToken?.symbol || 'Unknown';
+
           label = `${fromSym} → ${toSym}`;
         }
       }
 
-      // Fetch transaction receipt and decode logs to get amountOut
+      // Try to get swap amounts from logs
       const receipt = await rpc.getTransactionReceipt(tx.hash);
       const logs = receipt.logs;
 
       const transferLogs = logs.filter(log => log.topics[0] === ethers.id("Transfer(address,address,uint256)"));
+
       if (transferLogs.length >= 2) {
         const fromTransfer = transferLogs[0];
         const toTransfer = transferLogs[transferLogs.length - 1];
@@ -448,7 +456,7 @@ async function renderTxList(txs) {
       console.warn("Decode failed for tx:", tx.hash);
     }
 
-    // --- Build UI ---
+    // === Build Transaction UI ===
     const wrapper = document.createElement('a');
     wrapper.href = `https://snowtrace.io/tx/${tx.hash}`;
     wrapper.target = "_blank";
@@ -456,16 +464,33 @@ async function renderTxList(txs) {
 
     const title = document.createElement('div');
     title.className = "tx-label";
-    title.innerHTML = `
-      ${fromToken ? `<img src="${fromToken.logo}" class="token-logo" />` : ''} 
-      ${label}
-      ${toToken ? `<img src="${toToken.logo}" class="token-logo" />` : ''}
-    `;
     title.style.color = "var(--ruby)";
     title.style.fontWeight = "500";
     title.style.display = "flex";
     title.style.alignItems = "center";
     title.style.gap = "6px";
+
+    if (fromToken) {
+      const logo1 = document.createElement('img');
+      logo1.src = fromToken.logo;
+      logo1.className = "token-logo";
+      logo1.style.width = "16px";
+      logo1.style.height = "16px";
+      title.appendChild(logo1);
+    }
+
+    const arrow = document.createElement('span');
+    arrow.innerText = label;
+    title.appendChild(arrow);
+
+    if (toToken) {
+      const logo2 = document.createElement('img');
+      logo2.src = toToken.logo;
+      logo2.className = "token-logo";
+      logo2.style.width = "16px";
+      logo2.style.height = "16px";
+      title.appendChild(logo2);
+    }
 
     const tm = document.createElement('time');
     tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
