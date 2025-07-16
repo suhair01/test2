@@ -379,72 +379,111 @@ async function viewTransactions() {
     document.getElementById('txLoader').style.display = 'none';
   }
 }
-function renderTxList(txs) {
+
+async function renderTxList(txs) {
   const ul = document.getElementById('txList');
   ul.innerHTML = '';
 
   const iface = new ethers.Interface(ABI);
+  const knownSelectors = {};
 
-  txs.forEach(tx => {
+  for (const fragment of ABI) {
+    const sig = fragment.split('(')[0];
+    const selector = iface.getFunction(sig).selector;
+    knownSelectors[selector] = sig;
+  }
+
+  for (const tx of txs) {
     const li = document.createElement('li');
-
+    const selector = tx.input.slice(0, 10);
+    const fnName = knownSelectors[selector];
     let label = 'Unknown → Unknown';
+    let fromToken = null, toToken = null;
+    let amountIn = null, amountOut = null;
 
     try {
-      let path = [];
+      if (fnName) {
+        const args = iface.decodeFunctionData(fnName, tx.input);
+        const path = args.path;
 
-      if (tx.input.startsWith('0x')) {
-        // Try all known functions
-        for (const fn of [
-          "swapExactAVAXForTokensSupportingFeeOnTransferTokens",
-          "swapExactTokensForTokensSupportingFeeOnTransferTokens",
-          "swapExactTokensForAVAXSupportingFeeOnTransferTokens"
-        ]) {
-          try {
-            const args = iface.decodeFunctionData(fn, tx.input);
-            if (args?.path) {
-              path = args.path;
-              break;
-            }
-          } catch (e) {
-            // continue trying next function
-          }
+        if (Array.isArray(path) && path.length >= 2) {
+          const fromAddr = path[0].toLowerCase();
+          const toAddr = path[path.length - 1].toLowerCase();
+
+          fromToken = tokens.find(t =>
+            t.address.toLowerCase() === fromAddr ||
+            (t.address === 'AVAX' && fromAddr === WAVAX.toLowerCase())
+          );
+          toToken = tokens.find(t =>
+            t.address.toLowerCase() === toAddr ||
+            (t.address === 'AVAX' && toAddr === WAVAX.toLowerCase())
+          );
+
+          const fromSym = fromToken?.symbol || 'Unknown';
+          const toSym = toToken?.symbol || 'Unknown';
+          label = `${fromSym} → ${toSym}`;
         }
       }
 
-      if (path.length >= 2) {
-        const fromAddr = path[0].toLowerCase();
-        const toAddr = path[path.length - 1].toLowerCase();
+      // Fetch transaction receipt and decode logs to get amountOut
+      const receipt = await rpc.getTransactionReceipt(tx.hash);
+      const logs = receipt.logs;
 
-        const from = tokens.find(t =>
-          t.address.toLowerCase() === fromAddr ||
-          (t.address === "AVAX" && fromAddr === WAVAX.toLowerCase())
-        );
-        const to = tokens.find(t =>
-          t.address.toLowerCase() === toAddr ||
-          (t.address === "AVAX" && toAddr === WAVAX.toLowerCase())
-        );
+      const transferLogs = logs.filter(log => log.topics[0] === ethers.id("Transfer(address,address,uint256)"));
+      if (transferLogs.length >= 2) {
+        const fromTransfer = transferLogs[0];
+        const toTransfer = transferLogs[transferLogs.length - 1];
 
-        const fromSym = from ? from.symbol : 'Unknown';
-        const toSym = to ? to.symbol : 'Unknown';
+        const fromDecimals = tokenDecimals[fromToken?.address] || 18;
+        const toDecimals = tokenDecimals[toToken?.address] || 18;
 
-        label = `${fromSym} → ${toSym}`;
+        const inAmount = ethers.formatUnits(ethers.getUint(fromTransfer.data), fromDecimals);
+        const outAmount = ethers.formatUnits(ethers.getUint(toTransfer.data), toDecimals);
+
+        amountIn = parseFloat(inAmount).toFixed(4);
+        amountOut = parseFloat(outAmount).toFixed(4);
       }
-    } catch (e) {
+
+    } catch (err) {
       console.warn("Decode failed for tx:", tx.hash);
     }
 
-    const labelEl = document.createElement('div');
-    labelEl.innerText = label;
-    labelEl.style.color = "var(--ruby)";
-    labelEl.style.fontWeight = "500";
+    // --- Build UI ---
+    const wrapper = document.createElement('a');
+    wrapper.href = `https://snowtrace.io/tx/${tx.hash}`;
+    wrapper.target = "_blank";
+    wrapper.style.textDecoration = "none";
+
+    const title = document.createElement('div');
+    title.className = "tx-label";
+    title.innerHTML = `
+      ${fromToken ? `<img src="${fromToken.logo}" class="token-logo" />` : ''} 
+      ${label}
+      ${toToken ? `<img src="${toToken.logo}" class="token-logo" />` : ''}
+    `;
+    title.style.color = "var(--ruby)";
+    title.style.fontWeight = "500";
+    title.style.display = "flex";
+    title.style.alignItems = "center";
+    title.style.gap = "6px";
 
     const tm = document.createElement('time');
     tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
 
-    li.append(labelEl, tm);
+    if (amountIn && amountOut) {
+      const amt = document.createElement('div');
+      amt.style.fontSize = "13px";
+      amt.style.color = "#666";
+      amt.innerText = `${amountIn} ${fromToken?.symbol} → ${amountOut} ${toToken?.symbol}`;
+      li.append(wrapper);
+      wrapper.append(title, amt, tm);
+    } else {
+      wrapper.append(title, tm);
+      li.append(wrapper);
+    }
+
     ul.appendChild(li);
-  });
+  }
 }
 
 
