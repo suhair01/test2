@@ -387,10 +387,10 @@ async function renderTxList(txs) {
   ul.innerHTML = '';
 
   const iface = new ethers.Interface([
-    "function getAmountsOut(uint256 amountIn, address[] path)",
-    "function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)",
-    "function swapExactAVAXForTokensSupportingFeeOnTransferTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline) payable",
-    "function swapExactTokensForAVAXSupportingFeeOnTransferTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)"
+    "function getAmountsOut(uint256,address[]) view returns (uint256[])",
+    "function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)",
+    "function swapExactAVAXForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)",
+    "function swapExactTokensForAVAXSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"
   ]);
 
   for (const tx of txs) {
@@ -425,11 +425,9 @@ async function renderTxList(txs) {
         }
       }
 
-      // Read amounts from logs
+      // Read logs
       const receipt = await rpc.getTransactionReceipt(tx.hash);
-      const logs = receipt.logs;
-
-      const transferLogs = logs.filter(log =>
+      const transferLogs = receipt.logs.filter(log =>
         log.topics[0] === ethers.id("Transfer(address,address,uint256)")
       );
 
@@ -447,7 +445,7 @@ async function renderTxList(txs) {
         amountOut = parseFloat(outAmount).toFixed(4);
       }
     } catch (err) {
-      console.warn("Decode failed for tx:", tx.hash, err);
+      console.warn("Decode failed:", tx.hash, err);
     }
 
     // === Build UI ===
@@ -489,21 +487,22 @@ async function renderTxList(txs) {
     const tm = document.createElement('time');
     tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
 
-    if (amountIn && amountOut) {
-      const amt = document.createElement('div');
-      amt.style.fontSize = "13px";
-      amt.style.color = "#666";
-      amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
-      li.append(wrapper);
-      wrapper.append(title, amt, tm);
-    } else {
-      wrapper.append(title, tm);
-      li.append(wrapper);
-    }
+    const amt = document.createElement('div');
+    amt.style.fontSize = "13px";
+    amt.style.color = "#666";
+    amt.innerText =
+      amountIn && amountOut && fromToken && toToken
+        ? `${amountIn} ${fromToken.symbol} → ${amountOut} ${toToken.symbol}`
+        : "";
 
+    wrapper.append(title);
+    if (amt.innerText) wrapper.append(amt);
+    wrapper.append(tm);
+    li.append(wrapper);
     ul.appendChild(li);
   }
 }
+
 
 
 function openTxBar() {
