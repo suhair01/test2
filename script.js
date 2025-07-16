@@ -381,33 +381,48 @@ async function viewTransactions() {
     document.getElementById('txLoader').style.display = 'none';
   }
 }
-
-
 function renderTxList(txs) {
   const ul = document.getElementById('txList');
   ul.innerHTML = '';
 
-  // Get selected token symbols
-  const inToken = JSON.parse(document.getElementById("tokenInSelect").value);
-  const outToken = JSON.parse(document.getElementById("tokenOutSelect").value);
-  const label = `${inToken.symbol} → ${outToken.symbol}`;
-
   txs.forEach(tx => {
     const li = document.createElement('li');
 
-    const nameDiv = document.createElement('div');
-    nameDiv.innerText = label;
-    nameDiv.style.color = "var(--ruby)";
-    nameDiv.style.fontWeight = "500";
+    // Decode token path from tx.input
+    let label = 'Unknown → Unknown';
+    try {
+      const iface = new ethers.Interface(ABI);
+      const decoded = iface.parseTransaction({ data: tx.input });
+
+      const path = decoded.args.path;
+      if (Array.isArray(path) && path.length >= 2) {
+        const fromAddr = path[0].toLowerCase();
+        const toAddr   = path[path.length - 1].toLowerCase();
+
+        const from = tokens.find(t => t.address.toLowerCase() === fromAddr || (t.address === 'AVAX' && fromAddr === WAVAX.toLowerCase()));
+        const to   = tokens.find(t => t.address.toLowerCase() === toAddr   || (t.address === 'AVAX' && toAddr === WAVAX.toLowerCase()));
+
+        const fromSym = from ? from.symbol : 'Unknown';
+        const toSym   = to   ? to.symbol   : 'Unknown';
+
+        label = `${fromSym} → ${toSym}`;
+      }
+    } catch (e) {
+      console.warn('Failed to decode tx', tx.hash);
+    }
+
+    const labelEl = document.createElement('div');
+    labelEl.innerText = label;
+    labelEl.style.color = "var(--ruby)";
+    labelEl.style.fontWeight = "500";
 
     const tm = document.createElement('time');
     tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
 
-    li.append(nameDiv, tm);
+    li.append(labelEl, tm);
     ul.appendChild(li);
   });
 }
-
 
 function openTxBar() {
   document.getElementById('txDropdown').style.display = 'flex';
