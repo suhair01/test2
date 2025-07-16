@@ -567,7 +567,11 @@ body {
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border);
 }
-.tx-list {
-  max-height: 250px;
-  overflow-y: auto;
+.tx-list .token-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ccc;
+  background: white;
 }
