@@ -18,11 +18,12 @@ const rpc = new ethers.JsonRpcProvider(AVALANCHE_PARAMS.rpcUrls[0]);
 
 // ABIs
 const ABI = [
-  "getAmountsOut(uint256,address[])",
-  "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)",
-  "swapExactAVAXForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)",
-  "swapExactTokensForAVAXSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"
+  "function getAmountsOut(uint256 amountIn, address[] path) view returns (uint256[])",
+  "function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256 amountIn,uint256 amountOutMin,address[] path,address to,uint256 deadline)",
+  "function swapExactAVAXForTokensSupportingFeeOnTransferTokens(uint256 amountOutMin,address[] path,address to,uint256 deadline) payable",
+  "function swapExactTokensForAVAXSupportingFeeOnTransferTokens(uint256 amountIn,uint256 amountOutMin,address[] path,address to,uint256 deadline)"
 ];
+
 
 const ERC20_ABI = [
   "function balanceOf(address) view returns(uint256)",
