@@ -401,10 +401,21 @@ async function renderTxList(txs) {
 
     try {
       const selector = tx.input?.slice(0, 10);
-      const fn = iface.getFunction(selector);
-      if (fn) {
-        const args = iface.decodeFunctionData(fn, tx.input);
-        const path = args.path;
+let fnName = null;
+
+try {
+  const fn = iface.getFunctionBySelector(selector);
+  fnName = fn.name;
+} catch (err) {
+  console.warn("Unknown function selector:", selector);
+}
+
+if (fnName) {
+  const args = iface.decodeFunctionData(fnName, tx.input);
+  const path = args.path;
+  ...
+}
+
 
         if (Array.isArray(path) && path.length >= 2) {
           const fromAddr = path[0].toLowerCase();
