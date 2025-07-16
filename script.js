@@ -386,18 +386,28 @@ async function viewTransactions() {
 function renderTxList(txs) {
   const ul = document.getElementById('txList');
   ul.innerHTML = '';
+
+  // Get selected token symbols
+  const inToken = JSON.parse(document.getElementById("tokenInSelect").value);
+  const outToken = JSON.parse(document.getElementById("tokenOutSelect").value);
+  const label = `${inToken.symbol} → ${outToken.symbol}`;
+
   txs.forEach(tx => {
     const li = document.createElement('li');
-    const a  = document.createElement('a');
-    a.href      = `https://snowtrace.io/tx/${tx.hash}`;
-    a.target    = '_blank';
-    a.innerText = tx.hash;
+
+    const nameDiv = document.createElement('div');
+    nameDiv.innerText = label;
+    nameDiv.style.color = "var(--ruby)";
+    nameDiv.style.fontWeight = "500";
+
     const tm = document.createElement('time');
     tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
-    li.append(a, tm);
+
+    li.append(nameDiv, tm);
     ul.appendChild(li);
   });
 }
+
 
 function openTxBar() {
   document.getElementById('txDropdown').style.display = 'flex';
