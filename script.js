@@ -503,7 +503,8 @@ async function renderTxList(txs) {
       const amt = document.createElement('div');
       amt.style.fontSize = "13px";
       amt.style.color = "#666";
-      amt.innerText = `${amountIn} ${fromToken?.symbol} → ${amountOut} ${toToken?.symbol}`;
+    amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
+
       li.append(wrapper);
       wrapper.append(title, amt, tm);
     } else {
