@@ -339,8 +339,6 @@ async function viewTransactions() {
   const outToken = JSON.parse(document.getElementById("tokenOutSelect").value);
   const txTitle  = `${inToken.symbol} → ${outToken.symbol}`;
 
-  // Set dynamic title
-  document.getElementById("txTitle").innerText = `Transactions (${txTitle})`;
 
   // Show loader
   document.getElementById('txLoader').style.display = 'block';
