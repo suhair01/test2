@@ -387,14 +387,16 @@ async function renderTxList(txs) {
   const iface = new ethers.Interface(ABI);
   const knownSelectors = {};
 
-  // Build map of selector → function name safely
+  // Build safe selector map
   ABI.forEach(sig => {
     try {
-      const fragment = ethers.FunctionFragment.from(sig);
-      const selector = ethers.Interface.getFunctionSelector(fragment);
-      knownSelectors[selector] = fragment.name;
+      const fragment = ethers.utils.FunctionFragment.from(sig);
+      if (fragment && fragment.name) {
+        const selector = ethers.utils.Interface.getFunctionSelector(fragment);
+        knownSelectors[selector] = fragment.name;
+      }
     } catch (err) {
-      console.warn("Skipped ABI entry:", sig);
+      console.warn("Invalid ABI skipped:", sig);
     }
   });
 
@@ -405,7 +407,7 @@ async function renderTxList(txs) {
     let amountIn = null, amountOut = null;
 
     try {
-      const selector = tx.input.slice(0, 10);
+      const selector = tx.input?.slice(0, 10);
       const fnName = knownSelectors[selector];
 
       if (fnName) {
@@ -418,25 +420,26 @@ async function renderTxList(txs) {
 
           fromToken = tokens.find(t =>
             t.address.toLowerCase() === fromAddr ||
-            (t.address === 'AVAX' && fromAddr === WAVAX.toLowerCase())
+            (t.address === "AVAX" && fromAddr === WAVAX.toLowerCase())
           );
           toToken = tokens.find(t =>
             t.address.toLowerCase() === toAddr ||
-            (t.address === 'AVAX' && toAddr === WAVAX.toLowerCase())
+            (t.address === "AVAX" && toAddr === WAVAX.toLowerCase())
           );
 
           const fromSym = fromToken?.symbol || 'Unknown';
           const toSym = toToken?.symbol || 'Unknown';
-
           label = `${fromSym} → ${toSym}`;
         }
       }
 
-      // Try to get swap amounts from logs
+      // Try to read amounts from logs
       const receipt = await rpc.getTransactionReceipt(tx.hash);
       const logs = receipt.logs;
 
-      const transferLogs = logs.filter(log => log.topics[0] === ethers.id("Transfer(address,address,uint256)"));
+      const transferLogs = logs.filter(log =>
+        log.topics[0] === ethers.id("Transfer(address,address,uint256)")
+      );
 
       if (transferLogs.length >= 2) {
         const fromTransfer = transferLogs[0];
@@ -451,12 +454,11 @@ async function renderTxList(txs) {
         amountIn = parseFloat(inAmount).toFixed(4);
         amountOut = parseFloat(outAmount).toFixed(4);
       }
-
     } catch (err) {
       console.warn("Decode failed for tx:", tx.hash);
     }
 
-    // === Build Transaction UI ===
+    // === Build UI ===
     const wrapper = document.createElement('a');
     wrapper.href = `https://snowtrace.io/tx/${tx.hash}`;
     wrapper.target = "_blank";
@@ -510,6 +512,7 @@ async function renderTxList(txs) {
     ul.appendChild(li);
   }
 }
+
 
 
 function openTxBar() {
