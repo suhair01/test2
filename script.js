@@ -383,30 +383,55 @@ function renderTxList(txs) {
   const ul = document.getElementById('txList');
   ul.innerHTML = '';
 
+  const iface = new ethers.Interface(ABI);
+
   txs.forEach(tx => {
     const li = document.createElement('li');
 
-    // Decode token path from tx.input
     let label = 'Unknown → Unknown';
+
     try {
-      const iface = new ethers.Interface(ABI);
-      const decoded = iface.parseTransaction({ data: tx.input });
+      let path = [];
 
-      const path = decoded.args.path;
-      if (Array.isArray(path) && path.length >= 2) {
+      if (tx.input.startsWith('0x')) {
+        // Try all known functions
+        for (const fn of [
+          "swapExactAVAXForTokensSupportingFeeOnTransferTokens",
+          "swapExactTokensForTokensSupportingFeeOnTransferTokens",
+          "swapExactTokensForAVAXSupportingFeeOnTransferTokens"
+        ]) {
+          try {
+            const args = iface.decodeFunctionData(fn, tx.input);
+            if (args?.path) {
+              path = args.path;
+              break;
+            }
+          } catch (e) {
+            // continue trying next function
+          }
+        }
+      }
+
+      if (path.length >= 2) {
         const fromAddr = path[0].toLowerCase();
-        const toAddr   = path[path.length - 1].toLowerCase();
+        const toAddr = path[path.length - 1].toLowerCase();
 
-        const from = tokens.find(t => t.address.toLowerCase() === fromAddr || (t.address === 'AVAX' && fromAddr === WAVAX.toLowerCase()));
-        const to   = tokens.find(t => t.address.toLowerCase() === toAddr   || (t.address === 'AVAX' && toAddr === WAVAX.toLowerCase()));
+        const from = tokens.find(t =>
+          t.address.toLowerCase() === fromAddr ||
+          (t.address === "AVAX" && fromAddr === WAVAX.toLowerCase())
+        );
+        const to = tokens.find(t =>
+          t.address.toLowerCase() === toAddr ||
+          (t.address === "AVAX" && toAddr === WAVAX.toLowerCase())
+        );
 
         const fromSym = from ? from.symbol : 'Unknown';
-        const toSym   = to   ? to.symbol   : 'Unknown';
+        const toSym = to ? to.symbol : 'Unknown';
 
         label = `${fromSym} → ${toSym}`;
       }
     } catch (e) {
-      console.warn('Failed to decode tx', tx.hash);
+      console.warn("Decode failed for tx:", tx.hash);
     }
 
     const labelEl = document.createElement('div');
@@ -421,6 +446,7 @@ function renderTxList(txs) {
     ul.appendChild(li);
   });
 }
+
 
 function openTxBar() {
   document.getElementById('txDropdown').style.display = 'flex';
