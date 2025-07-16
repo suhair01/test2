@@ -386,19 +386,12 @@ async function renderTxList(txs) {
   const ul = document.getElementById('txList');
   ul.innerHTML = '';
 
-  const fragments = ABI.map(sig => ethers.Fragment.from(sig));
-  const iface = new ethers.Interface(fragments);
-  const knownSelectors = {};
-
-  // Build safe selector map
-  fragments.forEach(fragment => {
-    try {
-      const selector = iface.getFunctionSelector(fragment.name);
-      knownSelectors[selector] = fragment.name;
-    } catch (err) {
-      console.warn("Invalid fragment skipped:", fragment.name);
-    }
-  });
+  const iface = new ethers.Interface([
+    "function getAmountsOut(uint256 amountIn, address[] path)",
+    "function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)",
+    "function swapExactAVAXForTokensSupportingFeeOnTransferTokens(uint256 amountOutMin, address[] path, address to, uint256 deadline) payable",
+    "function swapExactTokensForAVAXSupportingFeeOnTransferTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline)"
+  ]);
 
   for (const tx of txs) {
     const li = document.createElement('li');
@@ -408,10 +401,9 @@ async function renderTxList(txs) {
 
     try {
       const selector = tx.input?.slice(0, 10);
-      const fnName = knownSelectors[selector];
-
-      if (fnName) {
-        const args = iface.decodeFunctionData(fnName, tx.input);
+      const fn = iface.getFunction(selector);
+      if (fn) {
+        const args = iface.decodeFunctionData(fn, tx.input);
         const path = args.path;
 
         if (Array.isArray(path) && path.length >= 2) {
@@ -433,7 +425,7 @@ async function renderTxList(txs) {
         }
       }
 
-      // Try to read amounts from logs
+      // Read amounts from logs
       const receipt = await rpc.getTransactionReceipt(tx.hash);
       const logs = receipt.logs;
 
@@ -455,7 +447,7 @@ async function renderTxList(txs) {
         amountOut = parseFloat(outAmount).toFixed(4);
       }
     } catch (err) {
-      console.warn("Decode failed for tx:", tx.hash);
+      console.warn("Decode failed for tx:", tx.hash, err);
     }
 
     // === Build UI ===
@@ -512,7 +504,6 @@ async function renderTxList(txs) {
     ul.appendChild(li);
   }
 }
-
 
 
 function openTxBar() {
