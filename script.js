@@ -381,17 +381,12 @@ async function viewTransactions() {
     document.getElementById('txLoader').style.display = 'none';
   }
 }
-
 async function renderTxList(txs) {
   const ul = document.getElementById('txList');
   ul.innerHTML = '';
 
-  const iface = new ethers.Interface([
-    "function getAmountsOut(uint256,address[]) view returns (uint256[])",
-    "function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)",
-    "function swapExactAVAXForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)",
-    "function swapExactTokensForAVAXSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)"
-  ]);
+  const fragments = ABI.map(sig => ethers.Fragment.from(sig));
+  const iface = new ethers.Interface(fragments);
 
   for (const tx of txs) {
     const li = document.createElement('li');
@@ -400,34 +395,37 @@ async function renderTxList(txs) {
     let amountIn = null, amountOut = null;
 
     try {
-      const selector = tx.input?.slice(0, 10);
-      const fn = iface.getFunction(selector);
-      if (fn) {
-        const args = iface.decodeFunctionData(fn, tx.input);
-        const path = args.path;
+      if (!tx.input || tx.input.length < 10) continue;
 
-        if (Array.isArray(path) && path.length >= 2) {
-          const fromAddr = path[0].toLowerCase();
-          const toAddr = path[path.length - 1].toLowerCase();
+      const selector = tx.input.slice(0, 10);
+      const fn = iface.getFunctionBySelector(selector); // ✅ FIXED
+      const fnName = fn.name;
+      const args = iface.decodeFunctionData(fn, tx.input);
+      const path = args.path;
 
-          fromToken = tokens.find(t =>
-            t.address.toLowerCase() === fromAddr ||
-            (t.address === "AVAX" && fromAddr === WAVAX.toLowerCase())
-          );
-          toToken = tokens.find(t =>
-            t.address.toLowerCase() === toAddr ||
-            (t.address === "AVAX" && toAddr === WAVAX.toLowerCase())
-          );
+      if (Array.isArray(path) && path.length >= 2) {
+        const fromAddr = path[0].toLowerCase();
+        const toAddr = path[path.length - 1].toLowerCase();
 
-          const fromSym = fromToken?.symbol || 'Unknown';
-          const toSym = toToken?.symbol || 'Unknown';
-          label = `${fromSym} → ${toSym}`;
-        }
+        fromToken = tokens.find(t =>
+          t.address.toLowerCase() === fromAddr ||
+          (t.address === "AVAX" && fromAddr === WAVAX.toLowerCase())
+        );
+        toToken = tokens.find(t =>
+          t.address.toLowerCase() === toAddr ||
+          (t.address === "AVAX" && toAddr === WAVAX.toLowerCase())
+        );
+
+        const fromSym = fromToken?.symbol || 'Unknown';
+        const toSym = toToken?.symbol || 'Unknown';
+        label = `${fromSym} → ${toSym}`;
       }
 
-      // Read logs
+      // Try to read amounts from logs
       const receipt = await rpc.getTransactionReceipt(tx.hash);
-      const transferLogs = receipt.logs.filter(log =>
+      const logs = receipt.logs;
+
+      const transferLogs = logs.filter(log =>
         log.topics[0] === ethers.id("Transfer(address,address,uint256)")
       );
 
@@ -445,7 +443,7 @@ async function renderTxList(txs) {
         amountOut = parseFloat(outAmount).toFixed(4);
       }
     } catch (err) {
-      console.warn("Decode failed:", tx.hash, err);
+      console.warn("Decode failed for tx:", tx.hash, err);
     }
 
     // === Build UI ===
@@ -487,22 +485,21 @@ async function renderTxList(txs) {
     const tm = document.createElement('time');
     tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
 
-    const amt = document.createElement('div');
-    amt.style.fontSize = "13px";
-    amt.style.color = "#666";
-    amt.innerText =
-      amountIn && amountOut && fromToken && toToken
-        ? `${amountIn} ${fromToken.symbol} → ${amountOut} ${toToken.symbol}`
-        : "";
+    if (amountIn && amountOut) {
+      const amt = document.createElement('div');
+      amt.style.fontSize = "13px";
+      amt.style.color = "#666";
+      amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
+      li.append(wrapper);
+      wrapper.append(title, amt, tm);
+    } else {
+      wrapper.append(title, tm);
+      li.append(wrapper);
+    }
 
-    wrapper.append(title);
-    if (amt.innerText) wrapper.append(amt);
-    wrapper.append(tm);
-    li.append(wrapper);
     ul.appendChild(li);
   }
 }
-
 
 
 function openTxBar() {
