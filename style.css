@@ -480,13 +480,12 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-/* Transactions Dropdown (Final 3 visible) */
+/* Transactions Dropdown (NEW STYLE) */
 .tx-dropdown {
   position: absolute;
-  top: 55px;
-  right: 0;
+  top: 45px;
+  right: 60px;
   width: 260px;
-  height: 280px; /* ✅ not max-height — force exact height */
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -496,7 +495,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow: hidden;
 }
 .tx-dropdown .tx-header {
   display: flex;
@@ -524,26 +522,18 @@ body {
   animation: spin 1s linear infinite;
 }
 .tx-dropdown .tx-list {
-  flex-grow: 1;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.tx-dropdown .tx-list::-webkit-scrollbar {
-  width: 5px;
-}
-.tx-dropdown .tx-list::-webkit-scrollbar-thumb {
-  background: var(--ruby);
-  border-radius: 10px;
 }
 .tx-dropdown .tx-list li {
-  font-size: 12px;
-  background: #f9f9f9;
+  font-size: 13px;
+  background: #f5f5f5;
   padding: 6px 8px;
-  border-radius: 6px;
-  margin-bottom: 4px;
+  border-radius: 8px;
+  margin-bottom: 6px;
   word-break: break-word;
 }
 .tx-dropdown .tx-list a {
@@ -570,23 +560,18 @@ body {
   font-weight: bold;
   font-size: 15px;
 }
-/* Expand / Collapse Button */
-.view-all-btn {
-  margin-top: auto;
-  background: none;
-  border: none;
-  color: var(--ruby);
-  font-weight: 600;
-  cursor: pointer;
-  padding: 6px 0;
-  font-size: 13px;
-  text-align: center;
+.tx-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
 }
-.view-all-btn:hover {
-  text-decoration: underline;
-}
-
-/* Scroll behavior for smoother UX */
-.tx-dropdown .tx-list {
-  scroll-behavior: smooth;
+.tx-list .token-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ccc;
+  background: white;
 }
