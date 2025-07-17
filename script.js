@@ -316,6 +316,23 @@ function toggleProfileMenu() {
   const menu = document.getElementById("profileMenu");
   menu.style.display = menu.style.display === "flex" ? "none" : "flex";
 }
+let txExpanded = false;
+function toggleTxExpand() {
+  const dropdown = document.getElementById("txDropdown");
+  const btn = document.getElementById("viewAllBtn");
+
+  txExpanded = !txExpanded;
+
+  if (txExpanded) {
+    dropdown.style.height = "auto";
+    btn.innerText = "Collapse";
+  } else {
+    dropdown.style.height = "280px";
+    btn.innerText = "View All";
+  }
+}
+
+
 function copyWallet() {
   if (currentAccount) {
     navigator.clipboard.writeText(currentAccount);
