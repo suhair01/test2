@@ -589,3 +589,11 @@ body {
 .show-more-btn:hover {
   background: #801722;
 }
+.tx-card-list {
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+}
