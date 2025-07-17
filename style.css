@@ -575,3 +575,18 @@ body {
   border: 1px solid #ccc;
   background: white;
 }
+.tx-dropdown .tx-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 240px;          /* Increased height for more visibility */
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.tx-dropdown .tx-list::-webkit-scrollbar {
+  width: 6px;
+}
+.tx-dropdown .tx-list::-webkit-scrollbar-thumb {
+  background: var(--ruby);
+  border-radius: 10px;
+}
