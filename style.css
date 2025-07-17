@@ -571,8 +571,9 @@ body {
 }
 .tx-dropdown {
   max-height: 280px;
-  overflow: hidden;
+  overflow-y: auto;   /* ✅ allow scrolling inside the dropdown */
 }
+
 .tx-dropdown .tx-list {
   max-height: 180px;
   overflow-y: auto;
