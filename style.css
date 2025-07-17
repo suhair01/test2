@@ -570,3 +570,23 @@ body {
   font-weight: bold;
   font-size: 15px;
 }
+/* Expand / Collapse Button */
+.view-all-btn {
+  margin-top: auto;
+  background: none;
+  border: none;
+  color: var(--ruby);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0;
+  font-size: 13px;
+  text-align: center;
+}
+.view-all-btn:hover {
+  text-decoration: underline;
+}
+
+/* Scroll behavior for smoother UX */
+.tx-dropdown .tx-list {
+  scroll-behavior: smooth;
+}
