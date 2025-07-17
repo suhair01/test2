@@ -483,9 +483,10 @@ body {
 /* Transactions Dropdown (NEW STYLE) */
 .tx-dropdown {
   position: absolute;
-  top: 45px;
-  right: 60px;
-  width: 260px;
+  top: 55px;
+  right: 0;
+  width: 260px;                            /* Match profile menu width */
+  max-height: 280px;                       /* Scroll height */
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -496,6 +497,7 @@ body {
   flex-direction: column;
   gap: 8px;
 }
+
 .tx-dropdown .tx-header {
   display: flex;
   justify-content: space-between;
@@ -579,7 +581,7 @@ body {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 160px;              /* Smaller height */
+  max-height: 180px;
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -587,11 +589,11 @@ body {
 .tx-dropdown .tx-list::-webkit-scrollbar {
   width: 5px;
 }
-
 .tx-dropdown .tx-list::-webkit-scrollbar-thumb {
   background: var(--ruby);
-  border-radius: 8px;
+  border-radius: 10px;
 }
+
 .tx-dropdown .tx-list li {
   font-size: 12px;
   padding: 6px 8px;
