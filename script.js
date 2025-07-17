@@ -383,6 +383,7 @@ async function renderTxList(txs) {
 
   txs.forEach(async (tx, index) => {
     const li = document.createElement('li');
+
     let fromToken = null, toToken = null;
     let amountIn = null, amountOut = null;
 
@@ -426,61 +427,60 @@ async function renderTxList(txs) {
       console.warn("Could not decode tx:", tx.hash);
     }
 
+    // === Build UI Card ===
     const wrapper = document.createElement('a');
     wrapper.href = `https://snowtrace.io/tx/${tx.hash}`;
     wrapper.target = "_blank";
     wrapper.style.textDecoration = "none";
+    wrapper.style.width = "100%";
 
-    const box = document.createElement('div');
-    box.style.display = "flex";
-    box.style.alignItems = "center";
-    box.style.justifyContent = "space-between";
-    box.style.gap = "8px";
-
-    const left = document.createElement('div');
-    left.style.display = "flex";
-    left.style.alignItems = "center";
-    left.style.gap = "6px";
+    const boxLeft = document.createElement('div');
+    boxLeft.className = "tx-box-left";
 
     if (fromToken) {
       const logo1 = document.createElement('img');
       logo1.src = fromToken.logo;
       logo1.className = "token-logo";
-      logo1.style.width = "18px";
-      logo1.style.height = "18px";
-      left.appendChild(logo1);
+      logo1.style.width = "20px";
+      logo1.style.height = "20px";
+      boxLeft.appendChild(logo1);
     }
 
     if (toToken) {
       const logo2 = document.createElement('img');
       logo2.src = toToken.logo;
       logo2.className = "token-logo";
-      logo2.style.width = "18px";
-      logo2.style.height = "18px";
+      logo2.style.width = "20px";
+      logo2.style.height = "20px";
       logo2.style.marginLeft = "4px";
-      left.appendChild(logo2);
+      boxLeft.appendChild(logo2);
     }
 
-    const amountText = document.createElement('div');
-    amountText.style.fontSize = "13px";
-    amountText.style.fontWeight = "500";
-    amountText.innerText = amountIn && amountOut
+    const boxRight = document.createElement('div');
+    boxRight.className = "tx-box-right";
+    boxRight.innerText = amountIn && amountOut
       ? `${parseFloat(amountIn).toFixed(4)} ${fromToken?.symbol || ''} → ${parseFloat(amountOut).toFixed(4)} ${toToken?.symbol || ''}`
       : "Swap";
 
-    box.appendChild(left);
-    box.appendChild(amountText);
-    wrapper.appendChild(box);
+    const card = document.createElement('div');
+    card.style.display = "flex";
+    card.style.justifyContent = "space-between";
+    card.style.alignItems = "center";
+    card.style.width = "100%";
+    card.appendChild(boxLeft);
+    card.appendChild(boxRight);
+
+    wrapper.appendChild(card);
     li.appendChild(wrapper);
 
-    // Hide if index >= 3
+    // Hide txs after first 3
     if (index >= 3) {
       li.style.display = "none";
     }
 
     ul.appendChild(li);
 
-    // Show More Button
+    // Add "Show More" button once
     if (index === 2 && txs.length > 3) {
       const showMore = document.createElement("button");
       showMore.innerText = "Show More";
@@ -493,6 +493,7 @@ async function renderTxList(txs) {
     }
   });
 }
+
 
 function openTxBar() {
   document.getElementById('txDropdown').style.display = 'flex';
