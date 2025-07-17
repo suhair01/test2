@@ -575,3 +575,25 @@ body {
   border: 1px solid #ccc;
   background: white;
 }
+.tx-card-list {
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.show-more-btn {
+  margin-top: 10px;
+  background: var(--ruby);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.show-more-btn:hover {
+  background: #801722;
+}
