@@ -391,7 +391,7 @@ async function renderTxList(txs) {
       if (!tx.input || typeof tx.input !== 'string' || tx.input.length < 10) continue;
 
       const selector = tx.input.slice(0, 10);
-      const fn = iface.getFunction(selector); // decode function by selector
+      const fn = iface.getFunction(selector);
       const args = iface.decodeFunctionData(fn, tx.input);
 
       const path = args.path || [];
@@ -399,14 +399,8 @@ async function renderTxList(txs) {
         const fromAddr = path[0].toLowerCase();
         const toAddr = path[path.length - 1].toLowerCase();
 
-        fromToken = tokens.find(t =>
-          t.address.toLowerCase() === fromAddr ||
-          (t.address === "AVAX" && fromAddr === WAVAX.toLowerCase())
-        );
-        toToken = tokens.find(t =>
-          t.address.toLowerCase() === toAddr ||
-          (t.address === "AVAX" && toAddr === WAVAX.toLowerCase())
-        );
+        fromToken = tokens.find(t => t.address.toLowerCase() === fromAddr || (t.address === "AVAX" && fromAddr === WAVAX.toLowerCase()));
+        toToken = tokens.find(t => t.address.toLowerCase() === toAddr || (t.address === "AVAX" && toAddr === WAVAX.toLowerCase()));
 
         const fromSym = fromToken?.symbol || 'Unknown';
         const toSym = toToken?.symbol || 'Unknown';
@@ -415,9 +409,7 @@ async function renderTxList(txs) {
 
       const receipt = await rpc.getTransactionReceipt(tx.hash);
       const logs = receipt.logs;
-      const transferLogs = logs.filter(log =>
-        log.topics[0] === ethers.id("Transfer(address,address,uint256)")
-      );
+      const transferLogs = logs.filter(log => log.topics[0] === ethers.id("Transfer(address,address,uint256)"));
 
       if (transferLogs.length >= 2) {
         const fromTransfer = transferLogs[0];
@@ -431,34 +423,38 @@ async function renderTxList(txs) {
 
         amountIn = parseFloat(inAmount).toFixed(4);
         amountOut = parseFloat(outAmount).toFixed(4);
-      } else {
-        console.warn("Not enough Transfer logs for tx:", tx.hash);
       }
-
     } catch (err) {
       console.warn("Decode failed for tx:", tx.hash, err);
     }
 
-    // === Build UI ===
     const wrapper = document.createElement('a');
     wrapper.href = `https://snowtrace.io/tx/${tx.hash}`;
     wrapper.target = "_blank";
     wrapper.style.textDecoration = "none";
+    wrapper.style.display = "block";
+    wrapper.style.padding = "10px";
+    wrapper.style.border = "1px solid var(--border)";
+    wrapper.style.borderRadius = "10px";
+    wrapper.style.marginBottom = "10px";
+    wrapper.style.background = "#fefefe";
 
     const title = document.createElement('div');
     title.className = "tx-label";
     title.style.color = "var(--ruby)";
-    title.style.fontWeight = "500";
+    title.style.fontWeight = "600";
     title.style.display = "flex";
     title.style.alignItems = "center";
-    title.style.gap = "6px";
+    title.style.justifyContent = "center";
+    title.style.gap = "10px";
+    title.style.fontSize = "15px";
 
     if (fromToken) {
       const logo1 = document.createElement('img');
       logo1.src = fromToken.logo;
       logo1.className = "token-logo";
-      logo1.style.width = "16px";
-      logo1.style.height = "16px";
+      logo1.style.width = "20px";
+      logo1.style.height = "20px";
       title.appendChild(logo1);
     }
 
@@ -470,30 +466,28 @@ async function renderTxList(txs) {
       const logo2 = document.createElement('img');
       logo2.src = toToken.logo;
       logo2.className = "token-logo";
-      logo2.style.width = "16px";
-      logo2.style.height = "16px";
+      logo2.style.width = "20px";
+      logo2.style.height = "20px";
       title.appendChild(logo2);
     }
-
-    const tm = document.createElement('time');
-    tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
 
     if (amountIn && amountOut) {
       const amt = document.createElement('div');
       amt.style.fontSize = "13px";
-      amt.style.color = "#666";
+      amt.style.color = "#444";
+      amt.style.textAlign = "center";
+      amt.style.marginTop = "6px";
       amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
-      li.append(wrapper);
-      wrapper.append(title, amt, tm);
+      wrapper.appendChild(title);
+      wrapper.appendChild(amt);
     } else {
-      wrapper.append(title, tm);
-      li.append(wrapper);
+      wrapper.appendChild(title);
     }
 
+    li.appendChild(wrapper);
     ul.appendChild(li);
   }
 }
-
 
 function openTxBar() {
   document.getElementById('txDropdown').style.display = 'flex';
