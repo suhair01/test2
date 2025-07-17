@@ -353,7 +353,7 @@ async function viewTransactions() {
 
     const routerTxs = json.result
       .filter(tx => tx.to.toLowerCase() === routerAddress.toLowerCase())
-      .slice(0, 5);
+      .slice(0, 10);
 
     if (routerTxs.length) {
       renderTxList(routerTxs.map(tx => ({
@@ -381,17 +381,17 @@ async function renderTxList(txs) {
   const fragments = ABI.map(sig => ethers.Fragment.from(sig));
   const iface = new ethers.Interface(fragments);
 
-  for (const tx of txs) {
+  txs.forEach(async (tx, index) => {
     const li = document.createElement('li');
     let label = 'Unknown → Unknown';
     let fromToken = null, toToken = null;
     let amountIn = null, amountOut = null;
 
     try {
-      if (!tx.input || typeof tx.input !== 'string' || tx.input.length < 10) continue;
+      if (!tx.input || typeof tx.input !== 'string' || tx.input.length < 10) return;
 
       const selector = tx.input.slice(0, 10);
-      const fn = iface.getFunction(selector); // decode function by selector
+      const fn = iface.getFunction(selector);
       const args = iface.decodeFunctionData(fn, tx.input);
 
       const path = args.path || [];
@@ -431,13 +431,79 @@ async function renderTxList(txs) {
 
         amountIn = parseFloat(inAmount).toFixed(4);
         amountOut = parseFloat(outAmount).toFixed(4);
-      } else {
-        console.warn("Not enough Transfer logs for tx:", tx.hash);
       }
-
     } catch (err) {
       console.warn("Decode failed for tx:", tx.hash, err);
     }
+
+    const wrapper = document.createElement('a');
+    wrapper.href = `https://snowtrace.io/tx/${tx.hash}`;
+    wrapper.target = "_blank";
+    wrapper.style.textDecoration = "none";
+
+    const title = document.createElement('div');
+    title.className = "tx-label";
+    title.style.display = "flex";
+    title.style.alignItems = "center";
+    title.style.gap = "6px";
+
+    if (fromToken) {
+      const logo1 = document.createElement('img');
+      logo1.src = fromToken.logo;
+      logo1.className = "token-logo";
+      logo1.style.width = "16px";
+      logo1.style.height = "16px";
+      title.appendChild(logo1);
+    }
+
+    const arrow = document.createElement('span');
+    arrow.innerText = label;
+    title.appendChild(arrow);
+
+    if (toToken) {
+      const logo2 = document.createElement('img');
+      logo2.src = toToken.logo;
+      logo2.className = "token-logo";
+      logo2.style.width = "16px";
+      logo2.style.height = "16px";
+      title.appendChild(logo2);
+    }
+
+    const tm = document.createElement('time');
+    tm.className = "tx-time";
+    tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
+
+    if (amountIn && amountOut) {
+      const amt = document.createElement('div');
+      amt.className = "tx-amount";
+      amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
+      wrapper.append(title, amt, tm);
+    } else {
+      wrapper.append(title, tm);
+    }
+
+    li.append(wrapper);
+
+    // 👇 HIDE transactions after the first 3
+    if (index >= 3) {
+      li.style.display = "none";
+    }
+
+    ul.appendChild(li);
+
+    // ✅ Append Show More button only once
+    if (index === 2 && txs.length > 3) {
+      const showMore = document.createElement("button");
+      showMore.innerText = "Show More";
+      showMore.className = "btn show-more-btn";
+      showMore.onclick = () => {
+        document.querySelectorAll('#txList li').forEach(li => li.style.display = "flex");
+        showMore.style.display = "none";
+      };
+      ul.parentElement.appendChild(showMore);
+    }
+  });
+}
 
     // === Build UI ===
     const wrapper = document.createElement('a');
