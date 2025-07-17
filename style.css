@@ -626,7 +626,7 @@ body {
 .show-more-btn {
   margin-top: 10px;
   background: var(--ruby);
-  color: white;
+  color: #ffdada ;
   border: none;
   padding: 8px 12px;
   border-radius: 10px;
