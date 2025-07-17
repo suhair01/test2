@@ -575,12 +575,13 @@ body {
 }
 
 .tx-dropdown .tx-list {
-  max-height: 180px;
+  max-height: 165px;               /* ≈ 3 transactions, assuming ~55px height each */
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   scrollbar-width: thin;
 }
-
-
 .tx-dropdown .tx-list::-webkit-scrollbar {
   width: 5px;
 }
