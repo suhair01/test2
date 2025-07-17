@@ -505,62 +505,6 @@ async function renderTxList(txs) {
   });
 }
 
-    // === Build UI ===
-    const wrapper = document.createElement('a');
-    wrapper.href = `https://snowtrace.io/tx/${tx.hash}`;
-    wrapper.target = "_blank";
-    wrapper.style.textDecoration = "none";
-
-    const title = document.createElement('div');
-    title.className = "tx-label";
-    title.style.color = "var(--ruby)";
-    title.style.fontWeight = "500";
-    title.style.display = "flex";
-    title.style.alignItems = "center";
-    title.style.gap = "6px";
-
-    if (fromToken) {
-      const logo1 = document.createElement('img');
-      logo1.src = fromToken.logo;
-      logo1.className = "token-logo";
-      logo1.style.width = "16px";
-      logo1.style.height = "16px";
-      title.appendChild(logo1);
-    }
-
-    const arrow = document.createElement('span');
-    arrow.innerText = label;
-    title.appendChild(arrow);
-
-    if (toToken) {
-      const logo2 = document.createElement('img');
-      logo2.src = toToken.logo;
-      logo2.className = "token-logo";
-      logo2.style.width = "16px";
-      logo2.style.height = "16px";
-      title.appendChild(logo2);
-    }
-
-    const tm = document.createElement('time');
-    tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
-
-    if (amountIn && amountOut) {
-      const amt = document.createElement('div');
-      amt.style.fontSize = "13px";
-      amt.style.color = "#666";
-      amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
-      li.append(wrapper);
-      wrapper.append(title, amt, tm);
-    } else {
-      wrapper.append(title, tm);
-      li.append(wrapper);
-    }
-
-    ul.appendChild(li);
-  }
-}
-
-
 function openTxBar() {
   document.getElementById('txDropdown').style.display = 'flex';
 }
