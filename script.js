@@ -332,20 +332,11 @@ function disconnect() {
 
 // === RECENT TRANSACTIONS PANEL & LOGIC ===
 async function viewTransactions() {
-  // Show txDropdown, hide profile content
   document.getElementById("profileContent").style.display = "none";
   document.getElementById("txDropdown").style.display = "flex";
-
-  // Get selected tokens
-  const inToken  = JSON.parse(document.getElementById("tokenInSelect").value);
-  const outToken = JSON.parse(document.getElementById("tokenOutSelect").value);
-  const txTitle  = `${inToken.symbol} → ${outToken.symbol}`;
-
-
-  // Show loader
-  document.getElementById('txLoader').style.display = 'block';
-  document.getElementById('txList').style.display = 'none';
-  document.getElementById('txEmpty').style.display = 'none';
+  document.getElementById("txLoader").style.display = "block";
+  document.getElementById("txList").style.display = "none";
+  document.getElementById("txEmpty").style.display = "none";
 
   try {
     const resp = await fetch(
@@ -367,7 +358,8 @@ async function viewTransactions() {
     if (routerTxs.length) {
       renderTxList(routerTxs.map(tx => ({
         hash:      tx.hash,
-        timeStamp: Number(tx.timeStamp)
+        timeStamp: Number(tx.timeStamp),
+        input:     tx.input // ✅ fix: include input for decoding
       })));
       document.getElementById('txList').style.display = 'block';
     } else {
@@ -381,6 +373,7 @@ async function viewTransactions() {
     document.getElementById('txLoader').style.display = 'none';
   }
 }
+
 async function renderTxList(txs) {
   const ul = document.getElementById('txList');
   ul.innerHTML = '';
@@ -395,14 +388,13 @@ async function renderTxList(txs) {
     let amountIn = null, amountOut = null;
 
     try {
-      if (!tx.input || tx.input.length < 10) continue;
+      if (!tx.input || typeof tx.input !== 'string' || tx.input.length < 10) continue;
 
       const selector = tx.input.slice(0, 10);
-      const fn = iface.getFunctionBySelector(selector); // ✅ FIXED
-      const fnName = fn.name;
+      const fn = iface.getFunction(selector); // decode function by selector
       const args = iface.decodeFunctionData(fn, tx.input);
-      const path = args.path;
 
+      const path = args.path || [];
       if (Array.isArray(path) && path.length >= 2) {
         const fromAddr = path[0].toLowerCase();
         const toAddr = path[path.length - 1].toLowerCase();
@@ -421,10 +413,8 @@ async function renderTxList(txs) {
         label = `${fromSym} → ${toSym}`;
       }
 
-      // Try to read amounts from logs
       const receipt = await rpc.getTransactionReceipt(tx.hash);
       const logs = receipt.logs;
-
       const transferLogs = logs.filter(log =>
         log.topics[0] === ethers.id("Transfer(address,address,uint256)")
       );
@@ -441,7 +431,10 @@ async function renderTxList(txs) {
 
         amountIn = parseFloat(inAmount).toFixed(4);
         amountOut = parseFloat(outAmount).toFixed(4);
+      } else {
+        console.warn("Not enough Transfer logs for tx:", tx.hash);
       }
+
     } catch (err) {
       console.warn("Decode failed for tx:", tx.hash, err);
     }
