@@ -377,7 +377,6 @@ async function viewTransactions() {
 async function renderTxList(txs) {
   const ul = document.getElementById('txList');
   ul.innerHTML = '';
-
   const fragments = ABI.map(sig => ethers.Fragment.from(sig));
   const iface = new ethers.Interface(fragments);
 
@@ -389,11 +388,9 @@ async function renderTxList(txs) {
 
     try {
       if (!tx.input || typeof tx.input !== 'string' || tx.input.length < 10) continue;
-
       const selector = tx.input.slice(0, 10);
       const fn = iface.getFunction(selector);
       const args = iface.decodeFunctionData(fn, tx.input);
-
       const path = args.path || [];
       if (Array.isArray(path) && path.length >= 2) {
         const fromAddr = path[0].toLowerCase();
@@ -414,13 +411,10 @@ async function renderTxList(txs) {
       if (transferLogs.length >= 2) {
         const fromTransfer = transferLogs[0];
         const toTransfer = transferLogs[transferLogs.length - 1];
-
         const fromDecimals = tokenDecimals[fromToken?.address] || 18;
         const toDecimals = tokenDecimals[toToken?.address] || 18;
-
         const inAmount = ethers.formatUnits(ethers.getUint(fromTransfer.data), fromDecimals);
         const outAmount = ethers.formatUnits(ethers.getUint(toTransfer.data), toDecimals);
-
         amountIn = parseFloat(inAmount).toFixed(4);
         amountOut = parseFloat(outAmount).toFixed(4);
       }
@@ -432,22 +426,21 @@ async function renderTxList(txs) {
     wrapper.href = `https://snowtrace.io/tx/${tx.hash}`;
     wrapper.target = "_blank";
     wrapper.style.textDecoration = "none";
-    wrapper.style.display = "block";
-    wrapper.style.padding = "10px";
-    wrapper.style.border = "1px solid var(--border)";
-    wrapper.style.borderRadius = "10px";
-    wrapper.style.marginBottom = "10px";
-    wrapper.style.background = "#fefefe";
 
-    const title = document.createElement('div');
-    title.className = "tx-label";
-    title.style.color = "var(--ruby)";
-    title.style.fontWeight = "600";
-    title.style.display = "flex";
-    title.style.alignItems = "center";
-    title.style.justifyContent = "center";
-    title.style.gap = "10px";
-    title.style.fontSize = "15px";
+    const box = document.createElement('div');
+    box.style.display = 'flex';
+    box.style.alignItems = 'center';
+    box.style.justifyContent = 'space-between';
+    box.style.padding = '6px';
+    box.style.background = '#fdfdfd';
+    box.style.border = '1px solid #eee';
+    box.style.borderRadius = '10px';
+    box.style.marginBottom = '6px';
+
+    const left = document.createElement('div');
+    left.style.display = 'flex';
+    left.style.alignItems = 'center';
+    left.style.gap = '6px';
 
     if (fromToken) {
       const logo1 = document.createElement('img');
@@ -455,39 +448,36 @@ async function renderTxList(txs) {
       logo1.className = "token-logo";
       logo1.style.width = "20px";
       logo1.style.height = "20px";
-      title.appendChild(logo1);
+      left.appendChild(logo1);
     }
-
     const arrow = document.createElement('span');
     arrow.innerText = label;
-    title.appendChild(arrow);
-
+    arrow.style.fontWeight = "bold";
+    left.appendChild(arrow);
     if (toToken) {
       const logo2 = document.createElement('img');
       logo2.src = toToken.logo;
       logo2.className = "token-logo";
       logo2.style.width = "20px";
       logo2.style.height = "20px";
-      title.appendChild(logo2);
+      left.appendChild(logo2);
     }
 
+    const right = document.createElement('div');
+    right.style.fontSize = "13px";
+    right.style.color = "#666";
     if (amountIn && amountOut) {
-      const amt = document.createElement('div');
-      amt.style.fontSize = "13px";
-      amt.style.color = "#444";
-      amt.style.textAlign = "center";
-      amt.style.marginTop = "6px";
-      amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
-      wrapper.appendChild(title);
-      wrapper.appendChild(amt);
-    } else {
-      wrapper.appendChild(title);
+      right.innerText = `${amountIn} ${fromToken?.symbol || '?'} → ${amountOut} ${toToken?.symbol || '?'}`;
     }
 
+    box.appendChild(left);
+    box.appendChild(right);
+    wrapper.appendChild(box);
     li.appendChild(wrapper);
     ul.appendChild(li);
   }
 }
+
 
 function openTxBar() {
   document.getElementById('txDropdown').style.display = 'flex';
