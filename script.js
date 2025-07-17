@@ -316,23 +316,6 @@ function toggleProfileMenu() {
   const menu = document.getElementById("profileMenu");
   menu.style.display = menu.style.display === "flex" ? "none" : "flex";
 }
-let txExpanded = false;
-function toggleTxExpand() {
-  const dropdown = document.getElementById("txDropdown");
-  const btn = document.getElementById("viewAllBtn");
-
-  txExpanded = !txExpanded;
-
-  if (txExpanded) {
-    dropdown.style.height = "auto";
-    btn.innerText = "Collapse";
-  } else {
-    dropdown.style.height = "280px";
-    btn.innerText = "View All";
-  }
-}
-
-
 function copyWallet() {
   if (currentAccount) {
     navigator.clipboard.writeText(currentAccount);
@@ -400,10 +383,6 @@ async function renderTxList(txs) {
 
   for (const tx of txs) {
     const li = document.createElement('li');
-    li.style.display = 'flex';
-    li.style.flexDirection = 'column';
-    li.style.gap = '4px';
-
     let label = 'Unknown → Unknown';
     let fromToken = null, toToken = null;
     let amountIn = null, amountOut = null;
@@ -412,10 +391,10 @@ async function renderTxList(txs) {
       if (!tx.input || typeof tx.input !== 'string' || tx.input.length < 10) continue;
 
       const selector = tx.input.slice(0, 10);
-      const fn = iface.getFunction(selector);
+      const fn = iface.getFunction(selector); // decode function by selector
       const args = iface.decodeFunctionData(fn, tx.input);
-      const path = args.path || [];
 
+      const path = args.path || [];
       if (Array.isArray(path) && path.length >= 2) {
         const fromAddr = path[0].toLowerCase();
         const toAddr = path[path.length - 1].toLowerCase();
@@ -429,7 +408,9 @@ async function renderTxList(txs) {
           (t.address === "AVAX" && toAddr === WAVAX.toLowerCase())
         );
 
-        label = `${fromToken?.symbol || '???'} → ${toToken?.symbol || '???'}`;
+        const fromSym = fromToken?.symbol || 'Unknown';
+        const toSym = toToken?.symbol || 'Unknown';
+        label = `${fromSym} → ${toSym}`;
       }
 
       const receipt = await rpc.getTransactionReceipt(tx.hash);
@@ -450,7 +431,10 @@ async function renderTxList(txs) {
 
         amountIn = parseFloat(inAmount).toFixed(4);
         amountOut = parseFloat(outAmount).toFixed(4);
+      } else {
+        console.warn("Not enough Transfer logs for tx:", tx.hash);
       }
+
     } catch (err) {
       console.warn("Decode failed for tx:", tx.hash, err);
     }
@@ -460,42 +444,56 @@ async function renderTxList(txs) {
     wrapper.href = `https://snowtrace.io/tx/${tx.hash}`;
     wrapper.target = "_blank";
     wrapper.style.textDecoration = "none";
-    wrapper.style.display = "flex";
-    wrapper.style.alignItems = "center";
-    wrapper.style.gap = "8px";
 
-    const logo1 = document.createElement('img');
-    logo1.src = fromToken?.logo || "";
-    logo1.className = "token-logo";
-    logo1.style.width = "18px";
-    logo1.style.height = "18px";
+    const title = document.createElement('div');
+    title.className = "tx-label";
+    title.style.color = "var(--ruby)";
+    title.style.fontWeight = "500";
+    title.style.display = "flex";
+    title.style.alignItems = "center";
+    title.style.gap = "6px";
 
-    const arrow = document.createElement('div');
-    arrow.innerHTML = `
-      <strong>${fromToken?.symbol || "???"}</strong> → 
-      <strong>${toToken?.symbol || "???"}</strong>
-    `;
+    if (fromToken) {
+      const logo1 = document.createElement('img');
+      logo1.src = fromToken.logo;
+      logo1.className = "token-logo";
+      logo1.style.width = "16px";
+      logo1.style.height = "16px";
+      title.appendChild(logo1);
+    }
 
-    const logo2 = document.createElement('img');
-    logo2.src = toToken?.logo || "";
-    logo2.className = "token-logo";
-    logo2.style.width = "18px";
-    logo2.style.height = "18px";
+    const arrow = document.createElement('span');
+    arrow.innerText = label;
+    title.appendChild(arrow);
 
-    wrapper.append(logo1, arrow, logo2);
-    li.appendChild(wrapper);
+    if (toToken) {
+      const logo2 = document.createElement('img');
+      logo2.src = toToken.logo;
+      logo2.className = "token-logo";
+      logo2.style.width = "16px";
+      logo2.style.height = "16px";
+      title.appendChild(logo2);
+    }
+
+    const tm = document.createElement('time');
+    tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
 
     if (amountIn && amountOut) {
       const amt = document.createElement('div');
       amt.style.fontSize = "13px";
-      amt.style.color = "#555";
-      amt.innerText = `${amountIn} ${fromToken?.symbol || "???"} → ${amountOut} ${toToken?.symbol || "???"}`;
-      li.appendChild(amt);
+      amt.style.color = "#666";
+      amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
+      li.append(wrapper);
+      wrapper.append(title, amt, tm);
+    } else {
+      wrapper.append(title, tm);
+      li.append(wrapper);
     }
 
     ul.appendChild(li);
   }
 }
+
 
 function openTxBar() {
   document.getElementById('txDropdown').style.display = 'flex';
