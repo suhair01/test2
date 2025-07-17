@@ -586,17 +586,41 @@ body {
 }
 
 .tx-card-list li {
-  background: #f9f9f9;
-  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  font-size: 14px;
-  transition: background 0.2s ease;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  transition: box-shadow 0.2s ease;
 }
 
 .tx-card-list li:hover {
-  background: #eee;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.tx-card-list a {
+  color: inherit;
+  text-decoration: none;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tx-box-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tx-box-right {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text);
 }
 
 .show-more-btn {
