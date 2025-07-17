@@ -383,13 +383,10 @@ async function renderTxList(txs) {
 
   txs.forEach(async (tx, index) => {
     const li = document.createElement('li');
-    let label = 'Unknown → Unknown';
     let fromToken = null, toToken = null;
     let amountIn = null, amountOut = null;
 
     try {
-      if (!tx.input || typeof tx.input !== 'string' || tx.input.length < 10) return;
-
       const selector = tx.input.slice(0, 10);
       const fn = iface.getFunction(selector);
       const args = iface.decodeFunctionData(fn, tx.input);
@@ -407,10 +404,6 @@ async function renderTxList(txs) {
           t.address.toLowerCase() === toAddr ||
           (t.address === "AVAX" && toAddr === WAVAX.toLowerCase())
         );
-
-        const fromSym = fromToken?.symbol || 'Unknown';
-        const toSym = toToken?.symbol || 'Unknown';
-        label = `${fromSym} → ${toSym}`;
       }
 
       const receipt = await rpc.getTransactionReceipt(tx.hash);
@@ -426,14 +419,11 @@ async function renderTxList(txs) {
         const fromDecimals = tokenDecimals[fromToken?.address] || 18;
         const toDecimals = tokenDecimals[toToken?.address] || 18;
 
-        const inAmount = ethers.formatUnits(ethers.getUint(fromTransfer.data), fromDecimals);
-        const outAmount = ethers.formatUnits(ethers.getUint(toTransfer.data), toDecimals);
-
-        amountIn = parseFloat(inAmount).toFixed(4);
-        amountOut = parseFloat(outAmount).toFixed(4);
+        amountIn = ethers.formatUnits(ethers.getUint(fromTransfer.data), fromDecimals);
+        amountOut = ethers.formatUnits(ethers.getUint(toTransfer.data), toDecimals);
       }
     } catch (err) {
-      console.warn("Decode failed for tx:", tx.hash, err);
+      console.warn("Could not decode tx:", tx.hash);
     }
 
     const wrapper = document.createElement('a');
@@ -441,57 +431,56 @@ async function renderTxList(txs) {
     wrapper.target = "_blank";
     wrapper.style.textDecoration = "none";
 
-    const title = document.createElement('div');
-    title.className = "tx-label";
-    title.style.display = "flex";
-    title.style.alignItems = "center";
-    title.style.gap = "6px";
+    const box = document.createElement('div');
+    box.style.display = "flex";
+    box.style.alignItems = "center";
+    box.style.justifyContent = "space-between";
+    box.style.gap = "8px";
+
+    const left = document.createElement('div');
+    left.style.display = "flex";
+    left.style.alignItems = "center";
+    left.style.gap = "6px";
 
     if (fromToken) {
       const logo1 = document.createElement('img');
       logo1.src = fromToken.logo;
       logo1.className = "token-logo";
-      logo1.style.width = "16px";
-      logo1.style.height = "16px";
-      title.appendChild(logo1);
+      logo1.style.width = "18px";
+      logo1.style.height = "18px";
+      left.appendChild(logo1);
     }
-
-    const arrow = document.createElement('span');
-    arrow.innerText = label;
-    title.appendChild(arrow);
 
     if (toToken) {
       const logo2 = document.createElement('img');
       logo2.src = toToken.logo;
       logo2.className = "token-logo";
-      logo2.style.width = "16px";
-      logo2.style.height = "16px";
-      title.appendChild(logo2);
+      logo2.style.width = "18px";
+      logo2.style.height = "18px";
+      logo2.style.marginLeft = "4px";
+      left.appendChild(logo2);
     }
 
-    const tm = document.createElement('time');
-    tm.className = "tx-time";
-    tm.innerText = new Date(tx.timeStamp * 1000).toLocaleString();
+    const amountText = document.createElement('div');
+    amountText.style.fontSize = "13px";
+    amountText.style.fontWeight = "500";
+    amountText.innerText = amountIn && amountOut
+      ? `${parseFloat(amountIn).toFixed(4)} ${fromToken?.symbol || ''} → ${parseFloat(amountOut).toFixed(4)} ${toToken?.symbol || ''}`
+      : "Swap";
 
-    if (amountIn && amountOut) {
-      const amt = document.createElement('div');
-      amt.className = "tx-amount";
-      amt.innerText = `${amountIn} ${fromToken?.symbol || '???'} → ${amountOut} ${toToken?.symbol || '???'}`;
-      wrapper.append(title, amt, tm);
-    } else {
-      wrapper.append(title, tm);
-    }
+    box.appendChild(left);
+    box.appendChild(amountText);
+    wrapper.appendChild(box);
+    li.appendChild(wrapper);
 
-    li.append(wrapper);
-
-    // 👇 HIDE transactions after the first 3
+    // Hide if index >= 3
     if (index >= 3) {
       li.style.display = "none";
     }
 
     ul.appendChild(li);
 
-    // ✅ Append Show More button only once
+    // Show More Button
     if (index === 2 && txs.length > 3) {
       const showMore = document.createElement("button");
       showMore.innerText = "Show More";
