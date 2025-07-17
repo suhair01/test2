@@ -624,9 +624,9 @@ body {
 }
 
 .show-more-btn {
-  margin-top: 10px;
+  margin-top: 8px;
   background: var(--ruby);
-  color: #ffdada ;
+  color: black; /* 👈 change from white to black */
   border: none;
   padding: 8px 12px;
   border-radius: 10px;
@@ -634,3 +634,8 @@ body {
   font-size: 13px;
   width: 100%;
 }
+.show-more-btn:hover {
+  background: #801722;
+  color: white; /* or stay black */
+}
+
