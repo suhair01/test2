@@ -377,44 +377,60 @@ async function viewTransactions() {
 async function renderTxList(txs) {
   const ul = document.getElementById('txList');
   ul.innerHTML = '';
+
   const fragments = ABI.map(sig => ethers.Fragment.from(sig));
   const iface = new ethers.Interface(fragments);
 
   for (const tx of txs) {
     const li = document.createElement('li');
+    li.style.display = 'flex';
+    li.style.flexDirection = 'column';
+    li.style.gap = '4px';
+
     let label = 'Unknown → Unknown';
     let fromToken = null, toToken = null;
     let amountIn = null, amountOut = null;
 
     try {
       if (!tx.input || typeof tx.input !== 'string' || tx.input.length < 10) continue;
+
       const selector = tx.input.slice(0, 10);
       const fn = iface.getFunction(selector);
       const args = iface.decodeFunctionData(fn, tx.input);
       const path = args.path || [];
+
       if (Array.isArray(path) && path.length >= 2) {
         const fromAddr = path[0].toLowerCase();
         const toAddr = path[path.length - 1].toLowerCase();
 
-        fromToken = tokens.find(t => t.address.toLowerCase() === fromAddr || (t.address === "AVAX" && fromAddr === WAVAX.toLowerCase()));
-        toToken = tokens.find(t => t.address.toLowerCase() === toAddr || (t.address === "AVAX" && toAddr === WAVAX.toLowerCase()));
+        fromToken = tokens.find(t =>
+          t.address.toLowerCase() === fromAddr ||
+          (t.address === "AVAX" && fromAddr === WAVAX.toLowerCase())
+        );
+        toToken = tokens.find(t =>
+          t.address.toLowerCase() === toAddr ||
+          (t.address === "AVAX" && toAddr === WAVAX.toLowerCase())
+        );
 
-        const fromSym = fromToken?.symbol || 'Unknown';
-        const toSym = toToken?.symbol || 'Unknown';
-        label = `${fromSym} → ${toSym}`;
+        label = `${fromToken?.symbol || '???'} → ${toToken?.symbol || '???'}`;
       }
 
       const receipt = await rpc.getTransactionReceipt(tx.hash);
       const logs = receipt.logs;
-      const transferLogs = logs.filter(log => log.topics[0] === ethers.id("Transfer(address,address,uint256)"));
+      const transferLogs = logs.filter(log =>
+        log.topics[0] === ethers.id("Transfer(address,address,uint256)")
+      );
 
       if (transferLogs.length >= 2) {
         const fromTransfer = transferLogs[0];
         const toTransfer = transferLogs[transferLogs.length - 1];
+
         const fromDecimals = tokenDecimals[fromToken?.address] || 18;
         const toDecimals = tokenDecimals[toToken?.address] || 18;
+
         const inAmount = ethers.formatUnits(ethers.getUint(fromTransfer.data), fromDecimals);
         const outAmount = ethers.formatUnits(ethers.getUint(toTransfer.data), toDecimals);
+
         amountIn = parseFloat(inAmount).toFixed(4);
         amountOut = parseFloat(outAmount).toFixed(4);
       }
@@ -422,62 +438,47 @@ async function renderTxList(txs) {
       console.warn("Decode failed for tx:", tx.hash, err);
     }
 
+    // === Build UI ===
     const wrapper = document.createElement('a');
     wrapper.href = `https://snowtrace.io/tx/${tx.hash}`;
     wrapper.target = "_blank";
     wrapper.style.textDecoration = "none";
+    wrapper.style.display = "flex";
+    wrapper.style.alignItems = "center";
+    wrapper.style.gap = "8px";
 
-    const box = document.createElement('div');
-    box.style.display = 'flex';
-    box.style.alignItems = 'center';
-    box.style.justifyContent = 'space-between';
-    box.style.padding = '6px';
-    box.style.background = '#fdfdfd';
-    box.style.border = '1px solid #eee';
-    box.style.borderRadius = '10px';
-    box.style.marginBottom = '6px';
+    const logo1 = document.createElement('img');
+    logo1.src = fromToken?.logo || "";
+    logo1.className = "token-logo";
+    logo1.style.width = "18px";
+    logo1.style.height = "18px";
 
-    const left = document.createElement('div');
-    left.style.display = 'flex';
-    left.style.alignItems = 'center';
-    left.style.gap = '6px';
+    const arrow = document.createElement('div');
+    arrow.innerHTML = `
+      <strong>${fromToken?.symbol || "???"}</strong> → 
+      <strong>${toToken?.symbol || "???"}</strong>
+    `;
 
-    if (fromToken) {
-      const logo1 = document.createElement('img');
-      logo1.src = fromToken.logo;
-      logo1.className = "token-logo";
-      logo1.style.width = "20px";
-      logo1.style.height = "20px";
-      left.appendChild(logo1);
-    }
-    const arrow = document.createElement('span');
-    arrow.innerText = label;
-    arrow.style.fontWeight = "bold";
-    left.appendChild(arrow);
-    if (toToken) {
-      const logo2 = document.createElement('img');
-      logo2.src = toToken.logo;
-      logo2.className = "token-logo";
-      logo2.style.width = "20px";
-      logo2.style.height = "20px";
-      left.appendChild(logo2);
-    }
+    const logo2 = document.createElement('img');
+    logo2.src = toToken?.logo || "";
+    logo2.className = "token-logo";
+    logo2.style.width = "18px";
+    logo2.style.height = "18px";
 
-    const right = document.createElement('div');
-    right.style.fontSize = "13px";
-    right.style.color = "#666";
-    if (amountIn && amountOut) {
-      right.innerText = `${amountIn} ${fromToken?.symbol || '?'} → ${amountOut} ${toToken?.symbol || '?'}`;
-    }
-
-    box.appendChild(left);
-    box.appendChild(right);
-    wrapper.appendChild(box);
+    wrapper.append(logo1, arrow, logo2);
     li.appendChild(wrapper);
+
+    if (amountIn && amountOut) {
+      const amt = document.createElement('div');
+      amt.style.fontSize = "13px";
+      amt.style.color = "#555";
+      amt.innerText = `${amountIn} ${fromToken?.symbol || "???"} → ${amountOut} ${toToken?.symbol || "???"}`;
+      li.appendChild(amt);
+    }
+
     ul.appendChild(li);
   }
 }
-
 
 function openTxBar() {
   document.getElementById('txDropdown').style.display = 'flex';
