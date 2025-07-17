@@ -353,7 +353,7 @@ async function viewTransactions() {
 
     const routerTxs = json.result
       .filter(tx => tx.to.toLowerCase() === routerAddress.toLowerCase())
-      .slice(0, 10);
+      .slice(0, 5);
 
     if (routerTxs.length) {
       renderTxList(routerTxs.map(tx => ({
