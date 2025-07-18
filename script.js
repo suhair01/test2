@@ -133,7 +133,7 @@ async function connect() {
     } else {
       // 📱 WalletConnect fallback
       walletConnectProvider = await WalletConnectEthereumProvider.init({
-        projectId: "YOUR_PROJECT_ID", // Replace this!
+        projectId: "02f48f8eb3b84b2e273baacb2b74a48f", // Replace this!
         chains: [43114],
         showQrModal: true,
       });
