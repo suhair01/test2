@@ -13,9 +13,6 @@ const AVALANCHE_PARAMS   = {
   blockExplorerUrls: ['https://snowtrace.io']
 };
 
-let isWalletConnect = false;
-
-
 // JSON-RPC provider (for blocks)
 const rpc = new ethers.JsonRpcProvider(AVALANCHE_PARAMS.rpcUrls[0]);
 
@@ -98,30 +95,20 @@ function reverseTokens() {
 }
 
 // === CONNECT WALLET ===
-let walletConnectProvider = null;
-
 async function connect() {
-  const isMetaMaskAvailable = typeof window.ethereum !== "undefined";
-
+  if (!window.ethereum) {
+    showToast("Please install MetaMask", "error");
+    return;
+  }
   try {
-    if (isMetaMaskAvailable) {
-  // 🦊 Try MetaMask only if it behaves
-  try {
-    await window.ethereum.request({ method: "eth_requestAccounts" });
-
-    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    await ethereum.request({ method: "eth_requestAccounts" });
+    const chainId = await ethereum.request({ method: "eth_chainId" });
     if (chainId !== AVALANCHE_PARAMS.chainId) {
       try {
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: AVALANCHE_PARAMS.chainId }],
-        });
+        await ethereum.request({ method:"wallet_switchEthereumChain", params:[{chainId: AVALANCHE_PARAMS.chainId}] });
       } catch (err) {
         if (err.code === 4902) {
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [AVALANCHE_PARAMS],
-          });
+          await ethereum.request({ method:"wallet_addEthereumChain", params:[AVALANCHE_PARAMS] });
         } else {
           showToast("Please switch to Avalanche", "error");
           return;
@@ -129,73 +116,26 @@ async function connect() {
       }
     }
 
-    provider = new ethers.BrowserProvider(window.ethereum);
-  } catch (err) {
-    console.warn("MetaMask connection failed", err);
-    showToast("MetaMask not available", "error");
-    return;
-  }
-}
-
-
-      const chainId = await window.ethereum.request({ method: "eth_chainId" });
-      if (chainId !== AVALANCHE_PARAMS.chainId) {
-        try {
-          await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: AVALANCHE_PARAMS.chainId }],
-          });
-        } catch (err) {
-          if (err.code === 4902) {
-            await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [AVALANCHE_PARAMS],
-            });
-          } else {
-            showToast("Please switch to Avalanche", "error");
-            return;
-          }
-        }
-      }
-
-      provider = new ethers.BrowserProvider(window.ethereum);
-    } else {
-      // 📱 WalletConnect fallback
-      walletConnectProvider = await WalletConnectEthereumProvider.init({
-        projectId: "02f48f8eb3b84b2e273baacb2b74a48f", // Replace this!
-        chains: [43114],
-        showQrModal: true,
-      });
-
-      await walletConnectProvider.enable();
-      provider = new ethers.BrowserProvider(walletConnectProvider);
-
-      walletConnectProvider.on("disconnect", () => disconnect());
-    }
-
-    signer = await provider.getSigner();
-    router = new ethers.Contract(routerAddress, ABI, signer);
+    provider    = new ethers.BrowserProvider(window.ethereum);
+    signer      = await provider.getSigner();
+    router      = new ethers.Contract(routerAddress, ABI, signer);
     arenaRouter = new ethers.Contract(arenaRouterAddress, ABI, provider);
     userAddress = await signer.getAddress();
     currentAccount = userAddress;
 
-    document.querySelector(".connect-btn").style.display = "none";
+    document.querySelector(".connect-btn").style.display    = "none";
     document.getElementById("profileWrapper").style.display = "flex";
-    document.getElementById("walletAddress").innerText =
-      userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
-    document.getElementById("swapBtn").disabled = false;
-    localStorage.setItem("connected", "1");
+    document.getElementById("walletAddress").innerText     = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+    document.getElementById("swapBtn").disabled            = false;
+    localStorage.setItem("connected","1");
 
     showToast("Wallet connected!", "success");
-    updateBalances();
-    updateEstimate();
+    updateBalances(); updateEstimate();
   } catch (err) {
-    console.error("Wallet connection failed:", err);
+    console.error(err);
     showToast("Connection failed", "error");
   }
 }
-
-
 
 // === SWITCH NETWORK ===
 async function switchToAvalanche() {
@@ -383,23 +323,10 @@ function copyWallet() {
   }
 }
 function disconnect() {
-  if (walletConnectProvider?.disconnect) {
-    walletConnectProvider.disconnect();
-  }
-
-  provider = null;
-  signer = null;
-  walletConnectProvider = null;
-  userAddress = null;
-  currentAccount = null;
-  isWalletConnect = false;
-
-  document.getElementById("profileWrapper").style.display = "none";
-  document.querySelector(".connect-btn").style.display = "inline-block";
-  document.getElementById("walletAddress").innerText = "";
-  document.getElementById("swapBtn").disabled = true;
   localStorage.removeItem("connected");
-
+  currentAccount = null;
+  document.getElementById("profileWrapper").style.display = "none";
+  document.querySelector(".connect-btn").style.display    = "inline-block";
   showToast("Wallet disconnected", "info");
 }
 
@@ -589,9 +516,8 @@ function showToast(msg, type = 'info') {
 // === EVENT LISTENERS ===
 window.addEventListener("DOMContentLoaded", async () => {
   await populateTokens();
-  if (localStorage.getItem("connected")) setTimeout(connect, 500);
+  if (localStorage.getItem("connected")) await connect();
 });
-
 window.addEventListener("click", (e) => {
   const menu = document.getElementById("profileMenu");
   if (!document.getElementById("profileWrapper").contains(e.target)) {
