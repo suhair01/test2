@@ -99,21 +99,29 @@ function reverseTokens() {
 }
 
 // === CONNECT WALLET ===
+let walletConnectProvider = null;
+
 async function connect() {
-  const isMetaMask = typeof window.ethereum !== "undefined";
+  const isMetaMaskAvailable = typeof window.ethereum !== "undefined";
 
   try {
-    if (isMetaMask) {
-      // === Use MetaMask
+    if (isMetaMaskAvailable) {
+      // 🦊 MetaMask path
       await window.ethereum.request({ method: "eth_requestAccounts" });
 
-      const chainId = await ethereum.request({ method: "eth_chainId" });
+      const chainId = await window.ethereum.request({ method: "eth_chainId" });
       if (chainId !== AVALANCHE_PARAMS.chainId) {
         try {
-          await ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: AVALANCHE_PARAMS.chainId }] });
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: AVALANCHE_PARAMS.chainId }],
+          });
         } catch (err) {
           if (err.code === 4902) {
-            await ethereum.request({ method: "wallet_addEthereumChain", params: [AVALANCHE_PARAMS] });
+            await window.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [AVALANCHE_PARAMS],
+            });
           } else {
             showToast("Please switch to Avalanche", "error");
             return;
@@ -122,23 +130,21 @@ async function connect() {
       }
 
       provider = new ethers.BrowserProvider(window.ethereum);
-      signer = await provider.getSigner();
     } else {
-      // === Use WalletConnect fallback
+      // 📱 WalletConnect fallback
       walletConnectProvider = await WalletConnectEthereumProvider.init({
-        projectId: "YOUR_PROJECT_ID", // Replace with your actual ID
+        projectId: "YOUR_PROJECT_ID", // Replace this!
         chains: [43114],
         showQrModal: true,
       });
 
       await walletConnectProvider.enable();
-
       provider = new ethers.BrowserProvider(walletConnectProvider);
-      signer = await provider.getSigner();
 
       walletConnectProvider.on("disconnect", () => disconnect());
     }
 
+    signer = await provider.getSigner();
     router = new ethers.Contract(routerAddress, ABI, signer);
     arenaRouter = new ethers.Contract(arenaRouterAddress, ABI, provider);
     userAddress = await signer.getAddress();
@@ -159,6 +165,7 @@ async function connect() {
     showToast("Connection failed", "error");
   }
 }
+
 
 
 // === SWITCH NETWORK ===
