@@ -105,8 +105,38 @@ async function connect() {
 
   try {
     if (isMetaMaskAvailable) {
-      // 🦊 MetaMask path
-      await window.ethereum.request({ method: "eth_requestAccounts" });
+  // 🦊 Try MetaMask only if it behaves
+  try {
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+
+    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    if (chainId !== AVALANCHE_PARAMS.chainId) {
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: AVALANCHE_PARAMS.chainId }],
+        });
+      } catch (err) {
+        if (err.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [AVALANCHE_PARAMS],
+          });
+        } else {
+          showToast("Please switch to Avalanche", "error");
+          return;
+        }
+      }
+    }
+
+    provider = new ethers.BrowserProvider(window.ethereum);
+  } catch (err) {
+    console.warn("MetaMask connection failed", err);
+    showToast("MetaMask not available", "error");
+    return;
+  }
+}
+
 
       const chainId = await window.ethereum.request({ method: "eth_chainId" });
       if (chainId !== AVALANCHE_PARAMS.chainId) {
