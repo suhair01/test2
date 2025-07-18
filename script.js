@@ -13,7 +13,6 @@ const AVALANCHE_PARAMS   = {
   blockExplorerUrls: ['https://snowtrace.io']
 };
 
-let walletConnectProvider = null;
 let isWalletConnect = false;
 
 
