@@ -106,7 +106,7 @@ async function connect() {
     // === Use WalletConnect on mobile or fallback
     try {
       walletConnectProvider = await WalletConnectEthereumProvider.init({
-        projectId: 'YOUR_PROJECT_ID', // Replace with your WalletConnect Project ID
+        projectId: '02f48f8eb3b84b2e273baacb2b74a48f', // Replace with your WalletConnect Project ID
         chains: [43114],
         showQrModal: true,
       });
